@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>WAM+3D · 阶段性研究进展</title>
+  <style>
+    :root {
+      --bg: #07100f;
+      --surface: #0d1917;
+      --surface-2: #12221f;
+      --line: rgba(184, 230, 209, .14);
+      --text: #ecf7f2;
+      --muted: #9eb4ab;
+      --mint: #80e6b8;
+      --cyan: #67d8e3;
+      --amber: #ffc66d;
+      --red: #ff8b82;
+      --purple: #b9a2ff;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .34);
+      --radius: 22px;
+      --max: 1220px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(58, 173, 132, .16), transparent 27rem),
+        radial-gradient(circle at 85% 18%, rgba(69, 158, 184, .12), transparent 30rem),
+        var(--bg);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.72;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%);
+    }
+    a { color: var(--mint); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font: inherit; }
+
+    .shell { width: min(calc(100% - 36px), var(--max)); margin: 0 auto; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 16, 15, .82);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 11px;
+      display: grid; place-items: center;
+      color: #07100f; background: linear-gradient(135deg, var(--mint), var(--cyan));
+      box-shadow: 0 0 30px rgba(128, 230, 184, .22);
+    }
+    nav { display: flex; gap: 20px; color: var(--muted); font-size: 13px; }
+    nav a { color: inherit; }
+    .print-btn {
+      color: var(--text); background: var(--surface-2); border: 1px solid var(--line);
+      padding: 8px 13px; border-radius: 999px; cursor: pointer;
+    }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .view-switch {
+      display: inline-flex; padding: 4px; border: 1px solid var(--line);
+      border-radius: 999px; background: rgba(255,255,255,.025);
+    }
+    .view-switch button {
+      border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer;
+      color: var(--muted); background: transparent; font-size: 12px;
+    }
+    .view-switch button.active {
+      color: #07100f; background: linear-gradient(135deg, var(--mint), var(--cyan));
+      box-shadow: 0 5px 18px rgba(103,216,227,.15);
+    }
+    .view-panel[hidden], nav[hidden] { display: none !important; }
+
+    .hero { padding: 88px 0 58px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      color: var(--mint); font: 700 12px/1.2 ui-monospace, monospace;
+      letter-spacing: .12em; text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 24px; height: 1px; background: currentColor; }
+    h1 { max-width: 920px; margin: 22px 0 18px; font-size: clamp(42px, 7vw, 86px); line-height: .98; letter-spacing: -.055em; }
+    .hero-lead { max-width: 780px; margin: 0; color: #c3d5ce; font-size: clamp(17px, 2vw, 22px); }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .pill { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: rgba(255,255,255,.025); font-size: 13px; }
+    .pill.live { color: var(--mint); border-color: rgba(128,230,184,.35); }
+
+    .headline-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; margin-top: 46px; }
+    .verdict {
+      position: relative; overflow: hidden; min-height: 245px;
+      padding: 30px; border: 1px solid rgba(128,230,184,.28); border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(128,230,184,.11), rgba(12,28,24,.82));
+      box-shadow: var(--shadow);
+    }
+    .verdict::after { content: "P2"; position: absolute; right: -8px; bottom: -49px; font-size: 180px; font-weight: 900; color: rgba(128,230,184,.055); line-height: 1; }
+    .verdict h2 { margin: 8px 0 10px; font-size: clamp(25px, 3vw, 39px); line-height: 1.15; }
+    .verdict p { max-width: 760px; margin: 0; color: #bcd0c7; }
+    .status-stack { display: grid; gap: 12px; }
+    .status-card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 17px; background: rgba(13,25,23,.8); }
+    .status-card small { display: block; color: var(--muted); font-size: 12px; }
+    .status-card strong { display: block; margin-top: 3px; font-size: 18px; }
+    .status-card.good strong { color: var(--mint); }
+    .status-card.warn strong { color: var(--amber); }
+
+    section { padding: 58px 0; scroll-margin-top: 76px; }
+    .section-head { display: grid; grid-template-columns: 160px 1fr; gap: 26px; margin-bottom: 28px; }
+    .section-no { color: var(--mint); font: 700 12px ui-monospace, monospace; letter-spacing: .13em; text-transform: uppercase; }
+    h2.section-title { margin: 0; font-size: clamp(29px, 4vw, 48px); line-height: 1.08; letter-spacing: -.035em; }
+    .section-copy { max-width: 770px; margin: 12px 0 0; color: var(--muted); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .stat { padding: 23px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+    .stat b { display: block; font-size: 34px; line-height: 1; letter-spacing: -.04em; color: var(--mint); }
+    .stat span { display: block; margin-top: 10px; color: var(--muted); font-size: 13px; }
+
+    .pipeline {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: stretch;
+      padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(13,25,23,.72);
+    }
+    .pipe-node { position: relative; min-height: 128px; padding: 18px 15px; border-radius: 15px; background: var(--surface-2); border: 1px solid var(--line); }
+    .pipe-node:not(:last-child)::after { content: "→"; position: absolute; right: -15px; top: 46%; color: var(--mint); z-index: 2; }
+    .pipe-node i { display: block; color: var(--mint); font: 700 11px ui-monospace, monospace; font-style: normal; }
+    .pipe-node strong { display: block; margin-top: 8px; line-height: 1.28; }
+    .pipe-node span { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .boundary { margin-top: 14px; padding: 14px 18px; border-left: 3px solid var(--amber); color: #d8c69f; background: rgba(255,198,109,.07); }
+
+    .route-explain { margin-top: 34px; }
+    .route-explain > h3 { margin: 0 0 8px; font-size: 27px; letter-spacing: -.025em; }
+    .route-explain > p { max-width: 900px; margin: 0 0 20px; color: var(--muted); }
+    .source-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0; }
+    .source-step { position: relative; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+    .source-step:not(:last-child)::after { content: "→"; position: absolute; right: -15px; top: 40%; color: var(--mint); z-index: 2; }
+    .source-step b { display: block; color: var(--mint); font-size: 13px; }
+    .source-step span { display: block; margin-top: 7px; color: var(--muted); font-size: 13px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
+    .detail-card { padding: 23px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .detail-card.wide { grid-column: 1 / -1; }
+    .detail-card h4 { margin: 0 0 9px; font-size: 19px; }
+    .detail-card p { margin: 0; color: var(--muted); }
+    .detail-card p + p { margin-top: 10px; }
+    .detail-card code { color: var(--cyan); }
+    .field-table { width: 100%; margin-top: 18px; border-collapse: collapse; border: 1px solid var(--line); background: var(--surface); }
+    .field-table th, .field-table td { padding: 13px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .field-table th { color: var(--muted); font-size: 12px; background: rgba(255,255,255,.02); }
+    .field-table td { font-size: 13px; }
+    .field-table tr:last-child td { border-bottom: 0; }
+    .plain-flow { margin-top: 18px; padding: 21px; border: 1px solid rgba(103,216,227,.22); border-radius: 18px; background: rgba(103,216,227,.055); }
+    .plain-flow strong { display: block; margin-bottom: 9px; color: var(--cyan); }
+    .plain-flow p { margin: 0; color: #c5d7d0; }
+    .plain-flow p + p { margin-top: 8px; }
+    .deep-step { margin-top: 30px; padding: 26px; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(145deg, rgba(18,34,31,.92), rgba(10,22,20,.92)); }
+    .deep-step-head { display: grid; grid-template-columns: 54px 1fr; gap: 16px; align-items: start; margin-bottom: 18px; }
+    .step-number { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; color: #07100f; background: linear-gradient(135deg, var(--mint), var(--cyan)); font: 850 18px ui-monospace, monospace; }
+    .deep-step h3 { margin: 0; font-size: 25px; line-height: 1.25; }
+    .deep-step-head p { margin: 5px 0 0; color: var(--muted); }
+    .io-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; margin-top: 16px; }
+    .io-card { padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255,255,255,.025); }
+    .io-card b { display: block; color: var(--cyan); font-size: 13px; }
+    .io-card p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+    .step-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 17px; }
+    .step-flow span { padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; color: #c9dbd3; background: var(--surface); font-size: 12px; }
+    .step-flow i { color: var(--mint); font-style: normal; }
+    .step-note { margin-top: 17px; padding: 14px 16px; border-left: 3px solid var(--mint); background: rgba(128,230,184,.06); color: #c8d9d2; font-size: 13px; }
+    .step-note.warn { border-left-color: var(--amber); background: rgba(255,198,109,.06); }
+
+    .work-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .work-card { padding: 25px; border-radius: 19px; border: 1px solid var(--line); background: var(--surface); }
+    .work-card .icon { color: var(--cyan); font: 800 13px ui-monospace, monospace; }
+    .work-card h3 { margin: 8px 0; font-size: 21px; }
+    .work-card ul { padding-left: 20px; margin: 12px 0 0; color: var(--muted); }
+    .work-card li + li { margin-top: 7px; }
+
+    .timeline { position: relative; margin-left: 12px; }
+    .timeline::before { content: ""; position: absolute; left: 11px; top: 8px; bottom: 10px; width: 1px; background: var(--line); }
+    .event { position: relative; display: grid; grid-template-columns: 24px 150px 1fr; gap: 18px; padding: 0 0 30px; }
+    .dot { width: 23px; height: 23px; border: 5px solid var(--bg); border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 1px rgba(128,230,184,.35); z-index: 1; }
+    .event-tag { color: var(--muted); font: 700 12px ui-monospace, monospace; padding-top: 3px; }
+    .event-body { padding: 0 0 8px; }
+    .event-body h3 { margin: 0 0 6px; font-size: 19px; }
+    .event-body p { margin: 0; color: var(--muted); }
+    .event.fail .dot { background: var(--red); }
+    .event.partial .dot { background: var(--amber); }
+
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .result-panel { padding: 25px; border-radius: 19px; border: 1px solid var(--line); background: var(--surface); }
+    .result-panel h3 { margin: 0 0 4px; font-size: 21px; }
+    .result-panel > p { margin: 0 0 20px; color: var(--muted); font-size: 13px; }
+    .metric { margin-top: 17px; }
+    .metric-row { display: flex; justify-content: space-between; gap: 15px; font-size: 13px; }
+    .metric-row span { color: var(--muted); }
+    .metric-row b { color: var(--text); font-family: ui-monospace, monospace; }
+    .bar { height: 7px; margin-top: 7px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.06); }
+    .bar > i { display: block; height: 100%; width: var(--w); border-radius: inherit; background: linear-gradient(90deg, var(--mint), var(--cyan)); }
+    .bar.bad > i { background: linear-gradient(90deg, var(--red), var(--amber)); }
+    .result-note { margin-top: 21px; padding-top: 16px; border-top: 1px solid var(--line); color: #cbdad4; font-size: 13px; }
+    .gate { display: inline-block; margin-left: 7px; padding: 2px 8px; border-radius: 999px; font: 700 10px ui-monospace, monospace; }
+    .gate.pass { color: var(--mint); background: rgba(128,230,184,.1); }
+    .gate.fail { color: var(--red); background: rgba(255,139,130,.1); }
+    .gate.partial { color: var(--amber); background: rgba(255,198,109,.1); }
+
+    .matrix { width: 100%; border-collapse: collapse; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .matrix th, .matrix td { padding: 15px 17px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .matrix th { color: var(--muted); font-size: 12px; font-weight: 650; background: rgba(255,255,255,.02); }
+    .matrix td { font-size: 14px; }
+    .matrix tr:last-child td { border-bottom: 0; }
+    .yes { color: var(--mint); } .no { color: var(--red); } .maybe { color: var(--amber); }
+
+    .issue-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+    .issue { padding: 25px; border-radius: 19px; border: 1px solid var(--line); background: var(--surface); }
+    .issue h3 { margin: 0 0 10px; }
+    .issue p { color: var(--muted); margin: 0; }
+    .issue code { color: var(--cyan); }
+    .issue.server { border-color: rgba(255,198,109,.25); }
+
+    .roadmap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .phase { min-height: 190px; padding: 19px; border-radius: 17px; border: 1px solid var(--line); background: var(--surface); }
+    .phase .phase-id { color: var(--mint); font: 800 13px ui-monospace, monospace; }
+    .phase h3 { margin: 10px 0 6px; font-size: 17px; }
+    .phase p { margin: 0; color: var(--muted); font-size: 13px; }
+    .phase.active { background: linear-gradient(145deg, rgba(128,230,184,.11), var(--surface)); border-color: rgba(128,230,184,.32); }
+    .phase.future { opacity: .63; }
+
+    .next-list { counter-reset: item; display: grid; gap: 12px; }
+    .next-item { display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: center; padding: 18px 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+    .next-item::before { counter-increment: item; content: counter(item, decimal-leading-zero); color: var(--mint); font: 800 13px ui-monospace, monospace; }
+    .next-item strong { display: block; }
+    .next-item span { display: block; color: var(--muted); font-size: 13px; }
+    .next-item em { color: var(--amber); font-size: 12px; font-style: normal; }
+
+    .talk { padding: 30px; border-radius: var(--radius); border: 1px solid rgba(103,216,227,.26); background: linear-gradient(145deg, rgba(103,216,227,.09), rgba(13,25,23,.82)); }
+    .talk blockquote { margin: 0; font-size: clamp(18px, 2.3vw, 25px); line-height: 1.58; }
+    .talk footer { margin-top: 18px; color: var(--muted); font-size: 13px; }
+
+    .files { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; padding: 22px; border-radius: 18px; background: #081210; border: 1px solid var(--line); }
+    .files code { overflow-wrap: anywhere; color: #acd8c5; font-size: 12px; }
+    .page-footer { padding: 40px 0 70px; color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }
+
+    .concept-hero { padding: 82px 0 54px; }
+    .concept-hero h1 em { color: var(--mint); font-style: normal; }
+    .concept-verdict { border-color: rgba(103,216,227,.3); background: linear-gradient(145deg, rgba(103,216,227,.1), rgba(12,28,24,.86)); }
+    .concept-verdict::after { content: "V3"; color: rgba(103,216,227,.055); }
+    .compare-grid { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 14px; align-items: stretch; }
+    .compare-card { padding: 25px; border: 1px solid var(--line); border-radius: 19px; background: var(--surface); }
+    .compare-card h3 { margin: 7px 0 12px; font-size: 22px; }
+    .compare-card p { margin: 0; color: var(--muted); }
+    .compare-card ul { margin: 15px 0 0; padding-left: 20px; color: var(--muted); }
+    .compare-card li + li { margin-top: 7px; }
+    .compare-arrow { display: grid; place-items: center; color: var(--mint); font-size: 28px; }
+    .tag { color: var(--cyan); font: 800 11px ui-monospace, monospace; letter-spacing: .08em; }
+    .architecture {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+      padding: 22px; border: 1px solid rgba(103,216,227,.24); border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(103,216,227,.055), rgba(13,25,23,.78));
+    }
+    .arch-node { position: relative; min-height: 154px; padding: 18px 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface-2); }
+    .arch-node:not(:last-child)::after { content: "→"; position: absolute; right: -15px; top: 44%; color: var(--mint); z-index: 2; }
+    .arch-node b { display: block; color: var(--cyan); font: 800 11px ui-monospace, monospace; }
+    .arch-node strong { display: block; margin-top: 8px; line-height: 1.28; }
+    .arch-node span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .arch-node.focus { border-color: rgba(128,230,184,.4); background: linear-gradient(145deg, rgba(128,230,184,.12), var(--surface-2)); }
+    .formula-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .formula-card { padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .formula-card h3 { margin: 0 0 8px; font-size: 18px; }
+    .formula-card code { display: block; margin: 12px 0; padding: 12px; color: var(--cyan); background: #081210; border-radius: 11px; overflow-wrap: anywhere; }
+    .formula-card p { margin: 0; color: var(--muted); font-size: 13px; }
+    .gate-ladder { display: grid; gap: 12px; }
+    .gate-step { display: grid; grid-template-columns: 76px 1fr auto; gap: 18px; align-items: center; padding: 21px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .gate-id { color: var(--mint); font: 850 14px ui-monospace, monospace; }
+    .gate-step h3 { margin: 0 0 4px; font-size: 18px; }
+    .gate-step p { margin: 0; color: var(--muted); font-size: 13px; }
+    .gate-state { padding: 4px 9px; border-radius: 999px; color: var(--amber); background: rgba(255,198,109,.09); font: 750 10px ui-monospace, monospace; }
+    .gate-state.done { color: var(--mint); background: rgba(128,230,184,.09); }
+    .evidence-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-top: 18px; }
+    .evidence { padding: 20px; border-radius: 16px; border: 1px solid var(--line); background: rgba(255,255,255,.025); }
+    .evidence b { display: block; color: var(--mint); font-size: 23px; }
+    .evidence span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .reference-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+    .reference-card { padding: 21px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .reference-card h3 { margin: 0 0 8px; font-size: 18px; }
+    .reference-card p { margin: 0; color: var(--muted); font-size: 13px; }
+    .reference-card a { display: inline-block; margin-top: 12px; font-size: 12px; }
+    .stop-box { padding: 27px; border: 1px solid rgba(255,198,109,.28); border-radius: 20px; background: linear-gradient(145deg, rgba(255,198,109,.08), rgba(13,25,23,.84)); }
+    .stop-box h3 { margin: 0 0 10px; font-size: 23px; }
+    .stop-box p { margin: 0; color: #d1c5a8; }
+
+    @media (max-width: 900px) {
+      nav { display: none; }
+      .headline-grid, .results-grid, .issue-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .pipeline { grid-template-columns: 1fr 1fr; }
+      .source-flow { grid-template-columns: 1fr 1fr; }
+      .io-grid { grid-template-columns: 1fr; }
+      .pipe-node:not(:last-child)::after { display: none; }
+      .source-step:not(:last-child)::after { display: none; }
+      .roadmap { grid-template-columns: 1fr 1fr; }
+      .section-head { grid-template-columns: 1fr; gap: 7px; }
+      .architecture { grid-template-columns: 1fr 1fr; }
+      .arch-node:not(:last-child)::after { display: none; }
+      .reference-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .shell { width: min(calc(100% - 24px), var(--max)); }
+      .hero { padding-top: 62px; }
+      .stats, .work-grid, .pipeline, .roadmap, .files, .source-flow, .detail-grid { grid-template-columns: 1fr; }
+      .detail-card.wide { grid-column: auto; }
+      .deep-step-head { grid-template-columns: 44px 1fr; }
+      .step-number { width: 44px; height: 44px; border-radius: 13px; }
+      .event { grid-template-columns: 24px 1fr; }
+      .event-tag { display: none; }
+      .next-item { grid-template-columns: 34px 1fr; }
+      .next-item em { grid-column: 2; }
+      .print-btn { display: none; }
+      .brand > span:last-child { display: none; }
+      .top-actions { gap: 6px; }
+      .view-switch button { padding: 7px 9px; }
+      .compare-grid, .formula-grid, .architecture, .evidence-strip, .reference-grid { grid-template-columns: 1fr; }
+      .compare-arrow { transform: rotate(90deg); min-height: 32px; }
+      .gate-step { grid-template-columns: 54px 1fr; }
+      .gate-state { grid-column: 2; justify-self: start; }
+    }
+    @media print {
+      :root { --bg: #fff; --surface: #f6faf8; --surface-2: #edf6f2; --text: #10231c; --muted: #52675f; --line: #d7e3de; }
+      body { background: white; }
+      body::before, .topbar { display: none; }
+      .hero { padding-top: 30px; }
+      section { break-inside: avoid; padding: 28px 0; }
+      .verdict, .work-card, .result-panel, .phase, .issue, .talk, .stat { box-shadow: none; }
+      .view-panel[hidden] { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand"><span class="brand-mark">3D</span><span>WAM+3D 研究进展</span></div>
+      <nav aria-label="阶段进展导航" data-nav="progress">
+        <a href="#overview">总览</a><a href="#route">路线</a><a href="#work">工作量</a>
+        <a href="#experiments">实验</a><a href="#issues">问题</a><a href="#next">下一步</a>
+      </nav>
+      <nav aria-label="当前构想导航" data-nav="concept" hidden>
+        <a href="#concept-overview">判断</a><a href="#concept-architecture">架构</a>
+        <a href="#concept-training">训练</a><a href="#concept-gates">Gate</a><a href="#concept-plan">实施</a>
+      </nav>
+      <div class="top-actions">
+        <div class="view-switch" role="tablist" aria-label="页面视图">
+          <button class="active" type="button" role="tab" aria-selected="true" data-view-target="progress">阶段进展</button>
+          <button type="button" role="tab" aria-selected="false" data-view-target="concept">当前构想</button>
+        </div>
+        <button class="print-btn" onclick="window.print()">打印 / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="progress-view" class="view-panel" data-view="progress">
+    <section class="hero shell" id="overview">
+      <div class="eyebrow">阶段报告 · 2026-10-21</div>
+      <h1>让对象级三维先验<br>真正进入 WAM 的行动链路</h1>
+      <p class="hero-lead">研究对象级点云、位姿与身份如何编码，如何先改变 DiT4DiT / Cosmos 的视频表征，再由动作生成模块产生连续动作片段。</p>
+      <div class="hero-meta">
+        <span class="pill live">当前阶段：P2</span><span class="pill">主基座：DiT4DiT</span>
+        <span class="pill">三维编码器：冻结的 Point-MAE</span><span class="pill">数据：LIBERO-object 仿真真值三维数据</span>
+      </div>
+
+      <div class="headline-grid">
+        <article class="verdict">
+          <div class="eyebrow">当前结论</div>
+          <h2>三维信息 → 视频隐藏表征已经成立；<br>视频隐藏表征 → 动作尚未通过最终验证。</h2>
+          <p>正确三维信息已能显著改善单帧视频残差对未来对象平移、点轨迹和交互的预测；动作生成模块也首次出现微弱的“正确位姿更好”信号。但正确三维信息尚未稳定优于完全关闭三维信息，因此不能宣称动作或闭环成功率已经提升。</p>
+        </article>
+        <div class="status-stack">
+          <div class="status-card good"><small>已通过</small><strong>未来三维表征验证</strong></div>
+          <div class="status-card warn"><small>部分观察到</small><strong>动作对物体位姿的敏感性</strong></div>
+          <div class="status-card"><small>尚未通过</small><strong>动作有效性与闭环执行</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="stats">
+        <div class="stat"><b>102/102</b><span>CPU 回归测试通过</span></div>
+        <div class="stat"><b>24 + 9</b><span>空间小规模试验：训练 / 验证轨迹数</span></div>
+        <div class="stat"><b>27 × 4</b><span>固定留出帧 × 对照随机种子</span></div>
+        <div class="stat"><b>3</b><span>动作阶段的 200 步受控实验</span></div>
+      </div>
+    </section>
+
+    <section class="shell" id="route">
+      <div class="section-head">
+        <div class="section-no">01 · 技术路线</div>
+        <div><h2 class="section-title">当前完整技术路线</h2><p class="section-copy">不是把点云特征直接塞给动作头，而是让三维信息先改变视频模型的内部表征，再由动作模型读取这个表征生成动作。</p></div>
+      </div>
+      <div class="pipeline" aria-label="WAM+3D 技术链路">
+        <div class="pipe-node"><i>第一步 · 输入</i><strong>仿真器提供的对象级三维真值</strong><span>物体局部点云、4×4 位姿、对象编号、图像边界框、有效标记、夹爪位姿</span></div>
+        <div class="pipe-node"><i>第二步 · 编码</i><strong>Point-MAE 形状编码 + 位姿编码</strong><span>把物体形状、位置、朝向、相对夹爪关系、身份和可信度变成统一的对象特征</span></div>
+        <div class="pipe-node"><i>第三步 · 注入</i><strong>按图像位置进行交叉注意力融合</strong><span>依据对象边界框，把对应三维特征送到 Cosmos 视频画面中的相应区域</span></div>
+        <div class="pipe-node"><i>第四步 · 表征</i><strong>形成加入三维信息的视频隐藏表征</strong><span>在 Cosmos 第 17 层附近得到“看过视频也读过三维信息”的内部特征</span></div>
+        <div class="pipe-node"><i>第五步 · 监督</i><strong>预测未来三维变化</strong><span>预测第 t+7 帧的平移、旋转、表面点轨迹以及物体与夹爪的关系</span></div>
+        <div class="pipe-node"><i>第六步 · 动作</i><strong>动作扩散模型生成动作</strong><span>Action DiT 读取加入三维信息的视频表征，生成一段连续机器人动作</span></div>
+      </div>
+      <div class="boundary"><strong>研究边界：</strong>第一阶段直接使用仿真器提供的对象编号、三维网格、位姿和空间位置真值，暂不处理现实图像中的自动检测、对象匹配与跟踪。当前三维信息注入 Cosmos 内部指定层，但还没有做多层深度注入。</div>
+
+      <div class="route-explain">
+        <h3>第一步详解：数据是什么，又从哪里来？</h3>
+        <p>LIBERO 是基于 MuJoCo 的机器人操作仿真环境。每条专家示范都记录了任务语言、摄像机画面、机器人状态、专家动作和逐帧仿真状态。我们重放每一帧仿真状态，直接读取物体和夹爪的真实三维状态，再保存成与原始轨迹配套的几何伴随文件。它不是从图片里估计出来的，所以当前阶段没有检测误差。</p>
+        <div class="source-flow">
+          <div class="source-step"><b>LIBERO 专家示范</b><span>例如“拿起牛奶盒并放进篮子”，包含图像和正确动作。</span></div>
+          <div class="source-step"><b>恢复逐帧仿真状态</b><span>让 MuJoCo 精确回到示范中的每一个时刻。</span></div>
+          <div class="source-step"><b>读取三维真值</b><span>取得对象网格、点云、位姿、夹爪位姿和对象在画面中的位置。</span></div>
+          <div class="source-step"><b>保存几何伴随文件</b><span>与原始视频和动作一一对齐，训练时同步读取。</span></div>
+        </div>
+
+        <h3>每个对象具体包含什么？</h3>
+        <p>假设一条轨迹有 T 帧、场景有 O 个对象，静态形状每个对象保存一次，位置与朝向则每一帧保存一次。</p>
+        <table class="field-table">
+          <thead><tr><th>数据</th><th>直观含义</th><th>典型形状</th><th>在模型中的作用</th></tr></thead>
+          <tbody>
+            <tr><td>局部点云</td><td>从物体三维网格表面采样的点，位于物体自身坐标系；物体移动时它不变。</td><td><code>[O, 1024, 3]</code></td><td>告诉模型“这个物体长什么样”。</td></tr>
+            <tr><td>物体位姿</td><td>4×4 矩阵，包含三维位置和三维朝向；每帧都会变化。</td><td><code>[T, O, 4, 4]</code></td><td>告诉模型“物体现在在哪里、朝向哪里”。</td></tr>
+            <tr><td>夹爪末端位姿</td><td>机械臂夹爪当前的位置与方向。EEF 是“末端执行器”的英文缩写。</td><td><code>[T, 4, 4]</code></td><td>用于计算物体相对夹爪的距离和方向。</td></tr>
+            <tr><td>对象编号</td><td>同一场景中稳定的对象身份编号，不等于点云形状本身。</td><td><code>[O]</code></td><td>帮助模型区分碗、瓶子、篮子等实体，同时需要消融以防模型只记编号。</td></tr>
+            <tr><td>图像边界框</td><td>物体在摄像机画面中的矩形区域，由左上角和右下角坐标表示。</td><td><code>[T, O, 4]</code></td><td>把某个物体的三维特征送到视频中该物体所在区域。</td></tr>
+            <tr><td>有效标记</td><td>该对象槽位是否真的存在；补齐出来的空槽位标为无效。</td><td><code>[O]</code></td><td>避免模型关注不存在的对象。</td></tr>
+            <tr><td>任务目标标记</td><td>指出当前任务重点操作的是哪个对象。</td><td><code>[O]</code></td><td>用于选择未来预测对象和构造“错误位姿”等对照条件；它不直接加进对象特征。</td></tr>
+            <tr><td>可信度</td><td>这条三维信息有多可靠；当前来自仿真真值，通常很高。</td><td><code>[O]</code></td><td>为将来接入有噪声的真实检测器预留可靠性权重。</td></tr>
+          </tbody>
+        </table>
+
+        <div class="detail-grid">
+          <article class="detail-card">
+            <h4>“位姿分支”到底是什么？</h4>
+            <p>位姿就是“位置 + 朝向”。位姿分支不是另一套大模型，而是编码器中专门处理 4×4 位姿矩阵的一条小型网络路径。</p>
+            <p>它同时读取物体的绝对位姿、夹爪位姿和“物体相对夹爪”的位姿。例如它能表达“瓶子在夹爪前方 8 厘米、左侧 2 厘米，瓶口向右旋转”。这类信息比单纯知道瓶子形状更直接地决定机器人下一步往哪儿移动。</p>
+          </article>
+          <article class="detail-card">
+            <h4>图像边界框是什么？</h4>
+            <p>图像边界框（bbox）就是框住物体的矩形，用 <code>[左、上、右、下]</code> 四个数表示。它只说明物体出现在画面的哪里，不描述物体的精确三维形状，也不等于逐像素分割轮廓。</p>
+            <p>当前边界框由仿真器真值计算，不是检测器猜出来的。它用于让“碗的三维特征”主要影响画面中碗所在的视频小块，而不是平均影响整个画面。</p>
+          </article>
+          <article class="detail-card">
+            <h4>这里的几种“标记”不要混淆</h4>
+            <p><strong>有效标记：</strong>这个对象槽位是否存在；<strong>任务目标标记：</strong>它是否是当前要操作的对象；<strong>像素分割掩码：</strong>图像中哪些像素属于该对象。</p>
+            <p>当前空间注入主要使用图像边界框做区域路由。有效标记用于屏蔽空对象，任务目标标记用于选择监督对象和构造对照实验；它们并不等于稠密的逐像素分割图。</p>
+          </article>
+          <article class="detail-card">
+            <h4>Point-MAE 负责什么？</h4>
+            <p>Point-MAE 是预训练点云编码器。它把每个对象的局部点云分成若干局部区域，再编码成形状特征，从中表示边缘、平面、开口、长宽比例等三维结构。</p>
+            <p>当前先冻结它，保留预训练形状知识，也避免用少量 LIBERO 数据把它训坏。它负责“长什么样”，位姿分支负责“在哪里、朝哪里”。</p>
+          </article>
+          <article class="detail-card wide">
+            <h4>最终融合了哪些信息？</h4>
+            <p>真正相加形成对象特征的是五类信息：① Point-MAE 提取的形状特征；② 物体在共享坐标系中的位置和朝向；③ 物体相对夹爪的位置和朝向；④ 对象身份编号；⑤ 信息可信度。它们先映射到相同特征维度，再逐项相加并归一化。夹爪自身位姿还会形成额外的上下文特征。</p>
+            <p>对象有效标记不作为数值特征相加，而是在注意力中屏蔽空槽位；任务目标标记也不直接进入对象特征，它主要用于指定未来预测对象和构造受控实验。</p>
+            <p>随后利用图像边界框，把对象级几何特征送到 Cosmos 中对应的空间视频特征。这样得到的视频隐藏表征既包含“画面看到了什么”，也包含“物体三维形状、真实位置以及它与夹爪的关系”。Action DiT 最终读取的是这个增强后的视频表征，而不是绕过视频模块直接读取原始点云。</p>
+          </article>
+        </div>
+
+        <div class="plain-flow">
+          <strong>用“夹取牛奶盒”举一个完整例子</strong>
+          <p>Point-MAE 告诉模型：这是一个细长盒状物体；位姿分支告诉模型：它在夹爪前方 7 厘米、左侧 2 厘米；图像边界框告诉模型：它位于画面右下区域；对象编号用于区分这个实体，任务目标标记则用于选定需要预测和扰动的目标对象。</p>
+          <p>这些信息先改变牛奶盒对应区域的视频内部特征。训练时再要求这个特征能够预测第 t+7 帧牛奶盒移动了多少、表面点去了哪里以及它与夹爪的关系如何变化。第 t+7 帧的真实位姿只作为训练答案，不会作为当前输入，因此不存在偷看未来信息。</p>
+        </div>
+
+        <article class="deep-step">
+          <div class="deep-step-head">
+            <div class="step-number">02</div>
+            <div><h3>把不同类型的三维数据编码成统一的对象特征</h3><p>这一环节解决的问题是：点云、4×4 矩阵、对象编号都是完全不同的数据格式，必须先转成 Cosmos 能够使用的同维度特征。</p></div>
+          </div>
+          <div class="io-grid">
+            <div class="io-card"><b>输入</b><p>每个对象的 1024 个局部三维点、当前物体位姿、夹爪位姿、对象编号、可信度和有效标记。</p></div>
+            <div class="io-card"><b>内部处理</b><p>形状、位姿、身份和可信度分别编码，再映射到与视频隐藏特征相同的维度并相加融合。</p></div>
+            <div class="io-card"><b>输出</b><p>每个对象得到固定数量的“对象几何特征”；一批对象组成可被视频特征查询的几何特征序列。</p></div>
+          </div>
+          <div class="step-flow">
+            <span>局部点云</span><i>→</i><span>归一化与局部点块</span><i>→</i><span>冻结 Point-MAE</span><i>→</i><span>可学习查询向量汇总</span><i>→</i><span>形状特征</span>
+          </div>
+          <div class="step-flow">
+            <span>物体 4×4 位姿</span><i>+</i><span>物体相对夹爪位姿</span><i>→</i><span>小型位姿网络</span><i>→</i><span>位姿特征</span>
+          </div>
+          <div class="step-flow">
+            <span>形状特征</span><i>+</i><span>位姿特征</span><i>+</i><span>对象编号特征</span><i>+</i><span>可信度特征</span><i>→</i><span>归一化后的对象几何特征</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-card"><h4>为什么点云要先归一化？</h4><p>Point-MAE 预训练时更擅长观察以物体自身为中心的形状。代码会把局部点云变换到适合 Point-MAE 的尺度，同时另外编码物体真实尺寸，避免归一化后丢失“这个物体究竟有多大”。</p></div>
+            <div class="detail-card"><h4>为什么平移量要放大？</h4><p>位姿矩阵中的旋转数值通常在 −1 到 1，位置按米记录时可能只有 0.01～0.5。当前把平移部分按比例放大后再送入小型网络，避免厘米级位置变化在数值上被旋转分量淹没。</p></div>
+            <div class="detail-card"><h4>为什么使用预训练 Point-MAE？</h4><p>它已经在大量点云上学习过局部形状结构，比从少量 LIBERO 数据重新训练一个点云编码器更稳。当前冻结它，只训练后面的汇总、投影和融合部分。</p></div>
+            <div class="detail-card"><h4>有效标记怎么使用？</h4><p>不同场景对象数量不同，批处理时需要补齐空槽位。有效标记会把这些空槽位对应的几何特征从注意力中屏蔽，而不是把“无效”当成一种物体特征。</p></div>
+          </div>
+          <div class="step-note"><strong>这一环节的目的：</strong>得到既表达物体形状，又表达真实位置、朝向和夹爪关系的对象级特征。它不是最终动作，也还没有改变视频，只是为下一步注入做好准备。</div>
+        </article>
+
+        <article class="deep-step">
+          <div class="deep-step-head">
+            <div class="step-number">03</div>
+            <div><h3>根据图像边界框，把对象特征注入正确的视频区域</h3><p>这一环节解决“哪个三维对象应该影响画面中的哪一块”。如果没有空间路由，碗的三维信息可能同时干扰桌面、机器人和背景。</p></div>
+          </div>
+          <div class="io-grid">
+            <div class="io-card"><b>输入</b><p>Cosmos 某一层的时空视频特征、对象几何特征，以及每个对象在当前画面中的图像边界框。</p></div>
+            <div class="io-card"><b>内部处理</b><p>把图像边界框换算到 Cosmos 的特征网格，建立“每个视频小块允许读取哪些对象”的布尔路由表。</p></div>
+            <div class="io-card"><b>输出</b><p>形状不变但内容被三维信息修正的视频特征；每个视频位置只重点读取与自己空间对应的对象。</p></div>
+          </div>
+          <div class="step-flow">
+            <span>图像中的对象矩形框</span><i>→</i><span>映射到视频特征网格</span><i>→</i><span>生成空间路由表</span><i>→</i><span>视频位置查询对应对象特征</span><i>→</i><span>残差加回视频特征</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-card"><h4>交叉注意力是谁查询谁？</h4><p>视频特征是“查询”，对象几何特征是“键和值”。直观地说，每个视频小块会问：“与我这个图像位置相关的对象三维信息是什么？”然后把读到的信息用于修正自身。</p></div>
+            <div class="detail-card"><h4>边界框如何限制读取范围？</h4><p>当前观测帧中，只有位于某个对象边界框内的视频小块可以读取该对象特征。夹爪位姿属于全局机器人上下文，可覆盖当前相机视图。对于尚不知道物体会移动到哪里的未来位置，路由限制会适当放宽。</p></div>
+            <div class="detail-card"><h4>为什么使用残差方式？</h4><p>模型不是丢掉原视频特征重新生成，而是计算一份“三维修正量”，再加回原特征。这能保留 Cosmos 原有的视频知识，同时只补充缺少的几何信息。</p></div>
+            <div class="detail-card"><h4>什么叫零初始化？</h4><p>残差输出层初始权重设为零。因此刚接入模块时，三维修正量严格为零，整个系统与原始 DiT4DiT 完全一致；训练后模型再逐渐学会需要加多少三维信息。</p></div>
+          </div>
+          <div class="step-note"><strong>这一环节的关键约束：</strong>三维信息必须先进入 Cosmos 视频表征，不能另开捷径直接送给 Action DiT。这保证我们验证的是“3D → 视频表征 → 动作”主线。</div>
+        </article>
+
+        <article class="deep-step">
+          <div class="deep-step-head">
+            <div class="step-number">04</div>
+            <div><h3>形成“加入三维信息后”的视频隐藏表征</h3><p>视频隐藏表征不是一张可视化图片，而是 Cosmos 内部的一串时空特征向量。每个向量对应某个时间、某块画面以及大量抽象语义。</p></div>
+          </div>
+          <div class="io-grid">
+            <div class="io-card"><b>原始视频表征</b><p>只由 RGB、语言等原始 WAM 输入形成，记作“加入三维前的特征”。</p></div>
+            <div class="io-card"><b>三维修正量</b><p>对象特征经过空间交叉注意力后产生的残差，表示三维信息具体改变了哪些视频特征。</p></div>
+            <div class="io-card"><b>增强后视频表征</b><p>原始视频表征加上三维修正量，再继续经过 Cosmos 后续计算并交给 Action DiT。</p></div>
+          </div>
+          <div class="step-flow">
+            <span>加入三维前的视频隐藏表征</span><i>+</i><span>三维残差</span><i>=</i><span>加入三维后的视频隐藏表征</span><i>→</i><span>Cosmos 后续层 / Action DiT</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-card"><h4>为什么要同时保留“前”和“后”？</h4><p>两者相减就得到纯粹由三维条件引起的变化。这样可以测量三维模块是否真的在工作，也可以让未来三维探针只分析三维带来的新增信息。</p></div>
+            <div class="detail-card"><h4>怎样判断不是随便改了一下？</h4><p>仅仅让特征变化并没有意义。我们还要检查这份变化能否预测未来物体位置、表面点运动和夹爪交互，并比较正确三维、关闭三维和错误位姿三种条件。</p></div>
+          </div>
+          <div class="step-note"><strong>当前已经证明：</strong>正确三维产生的视频残差包含有用的未来平移、点轨迹和交互信息。在固定验证轨迹上，正确三维显著优于关闭三维和偏移位姿；但旋转预测尚未全面通过。</div>
+        </article>
+
+        <article class="deep-step">
+          <div class="deep-step-head">
+            <div class="step-number">05</div>
+            <div><h3>用未来三维变化监督视频表征学到“可行动的几何”</h3><p>如果只使用动作损失，模型可能完全依赖 RGB、语言和对象编号。未来三维监督的作用，是明确要求视频表征理解对象接下来如何运动，而不是只发生任意数值变化。</p></div>
+          </div>
+          <div class="io-grid">
+            <div class="io-card"><b>探针能看到什么</b><p>它只读取目标对象区域内的“三维残差”，即加入三维前后视频特征的差值。</p></div>
+            <div class="io-card"><b>训练答案是什么</b><p>从几何伴随文件中读取当前帧与第 t+7 帧的真实物体/夹爪位姿，计算未来变化。</p></div>
+            <div class="io-card"><b>如何回传</b><p>预测误差通过视频残差、空间适配器和几何编码器反向传播，迫使注入方向携带可预测的三维动态。</p></div>
+          </div>
+          <table class="field-table">
+            <thead><tr><th>监督项</th><th>模型要预测什么</th><th>为什么有用</th></tr></thead>
+            <tbody>
+              <tr><td>未来平移</td><td>目标对象到第 t+7 帧在 x、y、z 三个方向移动了多少。</td><td>直接对应接近、抬起、搬运和放置等动作产生的空间变化。</td></tr>
+              <tr><td>未来旋转</td><td>目标对象相对当前时刻旋转了多少。</td><td>用于理解转动物体、调整抓取方向等行为；目前这一项仍需改进。</td></tr>
+              <tr><td>表面点轨迹</td><td>把当前对象表面点通过未来位姿变换后，预测这些点将去哪里。</td><td>同时约束平移、旋转和物体尺寸，比只预测中心点更完整。</td></tr>
+              <tr><td>物体—夹爪交互</td><td>预测未来物体与夹爪的相对位置关系。</td><td>把对象运动与机器人运动联系起来，减少只学场景运动统计的可能。</td></tr>
+              <tr><td>正确/错误条件排序</td><td>要求正确位姿的预测误差小于人为偏移后的错误位姿。</td><td>验证模型不仅“用了某些三维数值”，而且在意三维信息是否正确。</td></tr>
+            </tbody>
+          </table>
+          <div class="step-note"><strong>防止答案泄漏：</strong>第 t+7 帧位姿只用于计算损失，探针的输入里没有未来位姿，也不直接读取当前点云或位姿；它必须从已经改变的视频表征中解码答案。</div>
+        </article>
+
+        <article class="deep-step">
+          <div class="deep-step-head">
+            <div class="step-number">06</div>
+            <div><h3>Action DiT 读取增强后的视频表征并生成连续动作</h3><p>这是最终目标环节：不是证明视频特征“懂三维”就结束，而是要让这种表征真正帮助机器人动作预测。</p></div>
+          </div>
+          <div class="io-grid">
+            <div class="io-card"><b>输入</b><p>加入三维信息后的 Cosmos 视频隐藏表征，以及数据中可用的机器人自身状态。</p></div>
+            <div class="io-card"><b>训练目标</b><p>专家示范中的一段连续动作。每个动作通常包含三维平移、三维旋转和一维夹爪开合，共 7 个维度。</p></div>
+            <div class="io-card"><b>输出</b><p>不是只预测下一步，而是生成一个动作片段，使机械臂连续执行接近、抓取、搬运或放置。</p></div>
+          </div>
+          <div class="step-flow">
+            <span>增强后视频表征</span><i>+</i><span>带噪动作片段</span><i>+</i><span>扩散时间步</span><i>→</i><span>Action DiT</span><i>→</i><span>逐渐去噪</span><i>→</i><span>连续动作片段</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-card"><h4>动作扩散模型在学什么？</h4><p>训练时给专家动作加入随机噪声，让 Action DiT 根据视频表征和扩散时间步恢复正确动作。推理时从随机动作开始多次去噪，最终得到可执行动作片段。</p></div>
+            <div class="detail-card"><h4>正确与错误三维如何公平比较？</h4><p>同一帧、同一专家动作分别输入正确三维、关闭三维或偏移位姿。比较时固定扩散噪声、时间步和随机失活状态，尽量确保损失差异只来自三维条件。</p></div>
+            <div class="detail-card"><h4>为什么还要拆分动作损失？</h4><p>总动作损失混合了位置、旋转和夹爪开合。三维信息可能只改善位置控制，却被其他维度的波动淹没，因此下一步要分别评估平移、旋转和夹爪误差。</p></div>
+            <div class="detail-card"><h4>为什么当前动作验证还没通过？</h4><p>同一张 RGB 和同一句语言本身已经能提示动作；人为改错三维后仍沿用原专家动作，并没有真实的“错误场景应当采取什么动作”标签，所以 Action DiT 可以选择忽略三维，继续依赖视觉和语言捷径。</p></div>
+          </div>
+          <div class="step-note warn"><strong>当前结论：</strong>这一环节只观察到微弱的“正确位姿优于错误位姿”信号，统计上还不稳定；正确三维也没有稳定优于完全关闭三维。因此目前只能说三维信息已经进入并改善视频表征，不能说它已经改善动作或闭环成功率。</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell" id="work">
+      <div class="section-head">
+        <div class="section-no">02 · 已完成工作</div>
+        <div><h2 class="section-title">已经完成的实际工作量</h2><p class="section-copy">工程链路、数据接口、表示学习、消融体系和评估协议均已落地，而不只是完成概念调研。</p></div>
+      </div>
+      <div class="work-grid">
+        <article class="work-card"><div class="icon">数据 / 仿真真值</div><h3>三维伴随数据管线</h3><ul><li>从 LIBERO 场景导出物体局部点云、逐帧位姿、图像边界框、有效性/可信度与夹爪位姿。</li><li>完成轨迹、帧、对象编号对齐，有限数值审计和固定训练/验证划分。</li><li>从两个任务的早期小试验扩展到 LIBERO-object 空间试验。</li></ul></article>
+        <article class="work-card"><div class="icon">编码器 / 三维先验</div><h3>三代几何编码器</h3><ul><li><code>ordered_pool_v1</code>：早期有序池化基线。</li><li><code>point_queries_v2</code>：无序点集 + 可学习查询向量。</li><li><code>point_mae_pretrained_v1</code>：冻结预训练 Point-MAE，补充显式度量位姿与夹爪相对位姿。</li></ul></article>
+        <article class="work-card"><div class="icon">模型 / 信息注入</div><h3>视频表征注入</h3><ul><li>零初始化残差交叉注意力，初始输出严格保持原始基线。</li><li>从“特征提取后注入”的代理方案，发展到按边界框路由的 Cosmos 内部层注入。</li><li>支持正确、关闭、错误形状、错误位姿、随机特征等多类对照条件。</li></ul></article>
+        <article class="work-card"><div class="icon">训练目标 / 评估</div><h3>监督与可信评估</h3><ul><li>未来位姿探针：平移、旋转、点轨迹、交互与相对当前状态的监督。</li><li>正确/错误三维条件使用相同扩散噪声、时间步和随机失活状态。</li><li>固定留出样本，进行帧级与轨迹级自助法置信区间评估。</li></ul></article>
+        <article class="work-card"><div class="icon">训练 / 模型保存</div><h3>训练基础设施</h3><ul><li>官方完整权重 + 三维模块增量权重的加载机制。</li><li>只保存几何模块或 WAM3D 增量模块，避免反复保存多十亿参数的 Cosmos。</li><li>分模块学习率、受控冻结、梯度范数和隐藏表征变化日志。</li></ul></article>
+        <article class="work-card"><div class="icon">质量检查 / 复现</div><h3>复现与回归</h3><ul><li>独立 DiT4DiT / LIBERO 环境与 RTX 4090 单卡链路。</li><li>102 项 CPU 测试覆盖编码、控制、数据、评估与梯度路径。</li><li>所有数据、日志、模型权重与 JSON 结果集中于 <code>artifacts/</code>。</li></ul></article>
+      </div>
+    </section>
+
+    <section class="shell" id="experiments">
+      <div class="section-head">
+        <div class="section-no">03 · 实验过程</div>
+        <div><h2 class="section-title">实验是如何一步步收敛的</h2><p class="section-copy">每次负结果都用于排除一个解释，并推动下一次结构或数据修正。</p></div>
+      </div>
+      <div class="timeline">
+        <article class="event fail"><span class="dot"></span><span class="event-tag">V1 · ACTION ONLY</span><div class="event-body"><h3>简单点云编码 + action loss</h3><p>wrong shape 与 correct shape 没有稳定排序。排除“接线完全不通”后，发现 ID / confidence shortcut 和 action-only 监督过于间接。</p></div></article>
+        <article class="event partial"><span class="dot"></span><span class="event-tag">V2 · POINT QUERIES</span><div class="event-body"><h3>无序点集编码与初始化修正</h3><p>改善 shape token 可分性，point branch 有真实梯度，但 action gate 仍失败，说明瓶颈不只在 encoder。</p></div></article>
+        <article class="event partial"><span class="dot"></span><span class="event-tag">PRETRAINED 3D</span><div class="event-body"><h3>Point-MAE + 共享度量坐标系</h3><p>引入冻结预训练 3D encoder、EEF-relative pose 与 metric scaling，使“3D prior”从单一 embedding 扩展为形状、坐标系和动态监督。</p></div></article>
+        <article class="event"><span class="dot"></span><span class="event-tag">FUTURE 3D GATE</span><div class="event-body"><h3>受控解冻首次证明 video hidden 有用</h3><p>正确 3D 在 held-out future translation / point trajectory 上显著优于 disabled 与 offset pose，主表征链路通过。</p></div></article>
+        <article class="event partial"><span class="dot"></span><span class="event-tag">ACTION BRIDGE</span><div class="event-body"><h3>当前单帧同时监督 future 3D 与 action</h3><p>future-3D 能力显著保持；action 对错误位姿出现微弱敏感，但 geometry presence 尚未显著改善 action。</p></div></article>
+        <article class="event fail"><span class="dot"></span><span class="event-tag">RESIDUAL TOKEN</span><div class="event-body"><h3>目标区域均值摘要没有解决 action gate</h3><p>显式追加 video residual summary 后，full 仍不优于 disabled，并丢失弱 pose-correctness 信号。由此排除“只因局部 token 被稀释”的简单解释。</p></div></article>
+      </div>
+
+      <div class="results-grid">
+        <article class="result-panel">
+          <h3>单帧 Future-3D gate <span class="gate pass">PASS</span></h3>
+          <p>Action-bridge checkpoint；9 validation episodes，episode-level paired bootstrap。</p>
+          <div class="metric"><div class="metric-row"><span>disabled − full · translation</span><b>+19.536 mm</b></div><div class="bar"><i style="--w:92%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>disabled − full · point trajectory</span><b>+19.431 mm</b></div><div class="bar"><i style="--w:91%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>disabled − full · interaction</span><b>+1.381 mm</b></div><div class="bar"><i style="--w:52%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>offset pose − full · point trajectory</span><b>+18.058 mm</b></div><div class="bar"><i style="--w:88%"></i></div></div>
+          <div class="result-note">translation 与 point trajectory 均为 9/9 episodes 胜出且 95% CI 全正。旋转的 full-vs-disabled 仍为反向，不能扩展解释为完整 SE(3) 全面提升。</div>
+        </article>
+        <article class="result-panel">
+          <h3>Action gate <span class="gate partial">PARTIAL → FAIL</span></h3>
+          <p>相同 RGB / action label 与 diffusion 随机量，仅切换 geometry condition。</p>
+          <div class="metric"><div class="metric-row"><span>Action-only · offset − full</span><b>+0.0000004</b></div><div class="bar bad"><i style="--w:5%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>Action bridge · offset − full</span><b>+0.0000126</b></div><div class="bar"><i style="--w:58%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>Residual token · offset − full</span><b>−0.0000132</b></div><div class="bar bad"><i style="--w:37%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>Margin 达标次数</span><b>0 / 200</b></div><div class="bar bad"><i style="--w:1%"></i></div></div>
+          <div class="result-note">Action bridge 的 frame-level pose correctness 曾首次为正，但 episode CI 仍跨 0；三组实验都未建立 full 优于 disabled 的稳定证据。</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">04 · 结论边界</div>
+        <div><h2 class="section-title">现在可以说什么，不能说什么</h2></div>
+      </div>
+      <table class="matrix">
+        <thead><tr><th>研究命题</th><th>状态</th><th>当前证据</th></tr></thead>
+        <tbody>
+          <tr><td>对象级 point cloud / pose / ID 能被编码</td><td class="yes">已证明</td><td>三代 encoder、Point-MAE checkpoint、完整 forward/backward 与消融测试。</td></tr>
+          <tr><td>3D prior 能改变 WAM video representation</td><td class="yes">已证明</td><td>Cosmos-block geometry residual、非零 adapter gradient 与稳定 hidden delta。</td></tr>
+          <tr><td>改变后的 video hidden 包含有用未来 3D 信息</td><td class="yes">已证明</td><td>held-out translation / point trajectory / interaction 的 full-vs-disabled 与 pose correctness gate。</td></tr>
+          <tr><td>Action DiT 开始感知 3D pose correctness</td><td class="maybe">弱证据</td><td>Action bridge frame-level offset-pose paired delta 为正，episode-level 尚未显著。</td></tr>
+          <tr><td>3D prior 已提升 action prediction</td><td class="no">尚未证明</td><td>full-vs-disabled action loss 无显著优势；residual summary 消融失败。</td></tr>
+          <tr><td>3D prior 已提高 LIBERO 闭环成功率</td><td class="no">未测试</td><td>必须先通过离线 action gate，再进入闭环，避免高成本无效评估。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="shell" id="issues">
+      <div class="section-head">
+        <div class="section-no">05 · 当前问题</div>
+        <div><h2 class="section-title">当前真正的问题在哪里</h2><p class="section-copy">问题已经从“工程链路是否工作”收缩为“什么数据与目标能让 action 必须使用 3D”。</p></div>
+      </div>
+      <div class="issue-grid">
+        <article class="issue">
+          <h3>科学问题：action supervision 可辨识性不足</h3>
+          <p>同一 RGB、语言和动作标签下人为扰动 geometry，并没有与之对应的真实 counterfactual action 标签。模型可以忽略 3D；scalar diffusion loss 又混合 xyz、旋转和夹爪，使局部 metric 收益更难被观察。继续堆 adapter 或增大 margin 并不能自动解决这一点。</p>
+        </article>
+        <article class="issue">
+          <h3>数据问题：shortcut 仍然存在</h3>
+          <p>固定 object ID↔mesh、任务文本和 RGB 可泄露 object / action 信息。需要更强的跨 pose、跨对象但操作语义匹配的数据，或聚焦接近、抓取、放置等真正 geometry-sensitive 帧。</p>
+        </article>
+        <article class="issue">
+          <h3>表征边界：旋转尚未通过</h3>
+          <p>当前可靠收益集中在 translation 与 point trajectory。rotation 的 full-vs-disabled 仍可能更差，不能把结果包装为完整 SE(3) dynamics 已解决。</p>
+        </article>
+        <article class="issue server">
+          <h3>临时工程阻塞：服务器 GPU device nodes</h3>
+          <p>断电重启后 PCI 与 NVIDIA 580.178.04 kernel modules 均可见，但 <code>/dev/nvidia*</code> 未生成，导致 <code>nvidia-smi</code> 失败。这是服务器驱动/udev 初始化问题，不是项目代码或 checkpoint 损坏。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">06 · 总体阶段</div>
+        <div><h2 class="section-title">处于总规划的什么位置</h2></div>
+      </div>
+      <div class="roadmap">
+        <article class="phase"><div class="phase-id">P0 · DONE</div><h3>基线与数据接口</h3><p>环境、权重、LIBERO、sidecar、训练/保存链路。</p></article>
+        <article class="phase"><div class="phase-id">P1 · DONE</div><h3>Oracle 3D 编码</h3><p>Point-MAE、metric pose、空间 adapter 与消融。</p></article>
+        <article class="phase active"><div class="phase-id">P2 · ACTIVE</div><h3>表征到 Action</h3><p>future-3D gate 已过；action usefulness gate 仍在攻关。</p></article>
+        <article class="phase future"><div class="phase-id">P3 / P4</div><h3>自动感知与深注入</h3><p>检测、匹配、跟踪；多层 Cosmos 注入。</p></article>
+        <article class="phase future"><div class="phase-id">P5</div><h3>规模化闭环验证</h3><p>跨任务泛化、LIBERO success rate 与真实噪声。</p></article>
+      </div>
+    </section>
+
+    <section class="shell" id="next">
+      <div class="section-head">
+        <div class="section-no">07 · 下一步</div>
+        <div><h2 class="section-title">接下来按什么顺序做</h2><p class="section-copy">先提高诊断分辨率，再决定是否需要新数据；不再盲目重复200-step实验。</p></div>
+      </div>
+      <div class="next-list">
+        <div class="next-item"><div><strong>恢复服务器 GPU device nodes</strong><span>无需重训；checkpoint 和结果均完整。</span></div><em>服务器管理员</em></div>
+        <div class="next-item"><div><strong>复评 action 分维度 matched loss</strong><span>已有 evaluator：translation(xyz) / rotation(rpy) / gripper，比较 full、disabled、offset pose。</span></div><em>下一实验</em></div>
+        <div class="next-item"><div><strong>聚焦 geometry-sensitive phases</strong><span>按接近、接触、搬运、放置阶段与 moving frames 分层，确认 3D 是否只对局部时段有用。</span></div><em>诊断 gate</em></div>
+        <div class="next-item"><div><strong>若 xyz 仍失败，转向 matched 数据设计</strong><span>构造相同语义、不同 pose/shape 且 action 真正不同的数据对，替代没有真实 counterfactual label 的强行 ranking。</span></div><em>科学决策</em></div>
+        <div class="next-item"><div><strong>action gate 通过后再做 closed-loop</strong><span>比较 baseline / full / disabled / wrong-pose 的 LIBERO success rate。</span></div><em>进入 P2 收尾</em></div>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">08 · 代码与结果</div>
+        <div><h2 class="section-title">关键代码与结果入口</h2></div>
+      </div>
+      <div class="files">
+        <code>DiT4DiT/model/modules/geometry/geometry_conditioner.py</code>
+        <code>DiT4DiT/model/modules/geometry/future_translation_probe.py</code>
+        <code>DiT4DiT/model/framework/DiT4DiT.py</code>
+        <code>DiT4DiT/model/modules/action_model/ActionDiT.py</code>
+        <code>DiT4DiT/dataloader/geometry_sidecar.py</code>
+        <code>utils/export_libero_geometry_sidecars.py</code>
+        <code>utils/evaluate_wam3d_metric_dynamics.py</code>
+        <code>utils/evaluate_wam3d_action_gate.py</code>
+        <code>examples/LIBERO/train_files/run_wam3d_action_bridge.sh</code>
+        <code>examples/LIBERO/train_files/run_wam3d_action_residual_token.sh</code>
+        <code>docs/wam3d_progress.md</code>
+        <code>artifacts/results/</code>
+      </div>
+    </section>
+  </main>
+
+  <main id="concept-view" class="view-panel" data-view="concept" hidden>
+    <section class="concept-hero shell" id="concept-overview">
+      <div class="eyebrow">当前技术构想 · 2026-10-26</div>
+      <h1>从静态几何注入，转向<br><em>反事实 3D 因果先验</em></h1>
+      <p class="hero-lead">保留 WAM+3D“让三维真正帮助动作”的总目标，但不再假设静态 geometry token 会被 Action DiT 自动使用。先让模型学会区分不同候选动作造成的三维后果，再把经过验证的动态先验接回动作生成。</p>
+      <div class="hero-meta">
+        <span class="pill live">主路线：3D causal reranker</span>
+        <span class="pill">候选生成：DiT4DiT</span>
+        <span class="pill">动作接口：nominal robot point flow</span>
+        <span class="pill">核心监督：paired intervention</span>
+      </div>
+
+      <div class="headline-grid">
+        <article class="verdict concept-verdict">
+          <div class="eyebrow">路线判断</div>
+          <h2>不是重做 PointWorld，也不是放弃原 WAM+3D；而是先建立一条不可被忽略的动作—世界因果链。</h2>
+          <p>当前证据说明，3D state 对绝对 endpoint 预测有稳定但较小的帮助，却没有证明更会判断“换动作后的差异”。因此下一阶段停止扩展现有 absolute endpoint checkpoint，优先修正动作表示并训练反事实 trajectory model。</p>
+        </article>
+        <div class="status-stack">
+          <div class="status-card good"><small>绝对 endpoint</small><strong>3D 有小幅增益</strong></div>
+          <div class="status-card warn"><small>Intervention sensitivity</small><strong>严格 gate 未通过</strong></div>
+          <div class="status-card"><small>下一项实现</small><strong>Nominal action flow</strong></div>
+        </div>
+      </div>
+
+      <div class="evidence-strip">
+        <div class="evidence"><b>63</b><span>通过质量门的训练 branch states，来自 22 个 episodes</span></div>
+        <div class="evidence"><b>−0.442 mm</b><span>full − action-only held-out endpoint EPE，95% CI 为 [−0.750, −0.112] mm</span></div>
+        <div class="evidence"><b>−0.078</b><span>intervention cosine 差值，CI 跨 0；当前完整 gate 失败</span></div>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">C1 · 路线关系</div>
+        <div><h2 class="section-title">原始构想保留什么，调整什么</h2><p class="section-copy">总问题没有改变：3D 必须帮助动作，而不能只改变内部特征。改变的是达到这一目标的中间机制。</p></div>
+      </div>
+      <div class="compare-grid">
+        <article class="compare-card">
+          <div class="tag">原始 WAM-3D</div>
+          <h3>静态 3D → video hidden → action</h3>
+          <p>对象点云、位姿与空间 mask 被编码后注入 Cosmos/video representation，再由 Action DiT 间接读取。</p>
+          <ul><li>已证明 3D 能进入并改变 video hidden。</li><li>已证明 residual 可解码部分未来几何。</li><li>尚未证明 action 或闭环成功率提高。</li></ul>
+        </article>
+        <div class="compare-arrow" aria-hidden="true">→</div>
+        <article class="compare-card">
+          <div class="tag">调整后的 WAM+3D</div>
+          <h3>候选动作 → 3D 后果 → 动作选择</h3>
+          <p>把候选动作展开为部署时可获得的机器人三维轨迹，显式预测场景轨迹，并用预测结果重排候选。</p>
+          <ul><li>3D 从附加条件变成物理后果预测变量。</li><li>同状态反事实分支直接监督动作差异。</li><li>通过后再把动态 3D tokens 接回 Action DiT。</li></ul>
+        </article>
+      </div>
+      <div class="boundary"><strong>研究边界：</strong>如果最终只保留外挂 reranker，项目将更准确地称为“3D causal verifier for WAM”；如果 gate 通过后把动态 3D prior 接回 Action DiT/shared latent，则仍是原 WAM+3D 构想的因果化升级。</div>
+    </section>
+
+    <section class="shell" id="concept-architecture">
+      <div class="section-head">
+        <div class="section-no">C2 · 总体架构</div>
+        <div><h2 class="section-title">先生成候选，再预测物理后果，最后选择动作</h2><p class="section-copy">第一版保持模块化：不重训 Cosmos，不立刻改 Action DiT，用最小成本回答动态 3D 是否真的具有决策价值。</p></div>
+      </div>
+      <div class="architecture" aria-label="当前 WAM+3D 技术构想">
+        <article class="arch-node"><b>01 · OBSERVE</b><strong>当前 RGB-D / 3D scene</strong><span>对象或场景点、世界坐标、语言目标与机器人当前状态。</span></article>
+        <article class="arch-node"><b>02 · PROPOSE</b><strong>DiT4DiT 生成 K 个动作片段</strong><span>保留现有 WAM 的动作先验与生成能力，不从头训练大模型。</span></article>
+        <article class="arch-node focus"><b>03 · REALIZE</b><strong>Nominal robot point flow</strong><span>只由当前状态、候选命令、控制器和运动学得到；不读取接触后的未来状态。</span></article>
+        <article class="arch-node focus"><b>04 · PREDICT</b><strong>轻量 3D causal dynamics</strong><span>输入当前三维和候选机器人轨迹，预测完整物体/场景 point trajectories。</span></article>
+        <article class="arch-node"><b>05 · SCORE</b><strong>目标与物理可行性评分</strong><span>依据任务进展、接触、碰撞、终点、不确定性对候选排序。</span></article>
+        <article class="arch-node"><b>06 · EXECUTE</b><strong>选择动作并闭环执行</strong><span>执行 top-1 chunk；最终以 LIBERO success rate 判断是否真正有用。</span></article>
+      </div>
+      <div class="plain-flow">
+        <strong>关键接口</strong>
+        <p><code>F̂ᵢ = Dynamics(Sₜ, Aᵢⁿᵒᵐⁱⁿᵃˡ)</code>：对每个候选独立预测场景轨迹，因此训练时可以使用 expert/candidate 配对，推理时不需要知道 expert。</p>
+        <p><strong>禁止输入：</strong>执行候选后实测得到的未来 EEF trajectory。它只作为 realized-flow oracle，用来测量信息泄漏和性能上限。</p>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">C3 · 数据接口</div>
+        <div><h2 class="section-title">Schema v3：统一世界坐标与物理时间</h2><p class="section-copy">动作和场景变化都表示成有点身份、有时间戳的三维轨迹；当前阶段先聚焦夹爪与任务对象，避免静态背景稀释信号。</p></div>
+      </div>
+      <table class="field-table">
+        <thead><tr><th>字段</th><th>来源与形状</th><th>用途与限制</th></tr></thead>
+        <tbody>
+          <tr><td><code>scene_points_world</code></td><td>当前对象/场景点，[N, 3]</td><td>模型可见的当前三维状态；必须使用统一米制世界坐标。</td></tr>
+          <tr><td><code>raw_action_chunk</code></td><td>DiT4DiT 或人工扰动候选，[H, 7]</td><td>保留原始控制命令，作为 action-only 基线。</td></tr>
+          <tr><td><code>nominal_robot_flow</code></td><td>当前 robot state + controller/kinematics，[M, H, 3]</td><td>正式动作条件；部署时必须可以在执行前获得。</td></tr>
+          <tr><td><code>realized_robot_flow</code></td><td>仿真执行后实测，[M, H, 3]</td><td>仅作为 oracle/leakage audit，不进入正式模型。</td></tr>
+          <tr><td><code>scene_point_flow</code></td><td>counterfactual rollout 标签，[N, H, 3]</td><td>预测目标；包含完整轨迹，不只最终 SE(3)。</td></tr>
+          <tr><td><code>timestamps_sec</code></td><td>物理时间，[H]</td><td>处理 frame rate、no-op 删除和不均匀采样。</td></tr>
+          <tr><td><code>moving/contact masks</code></td><td>仿真真值或几何阈值</td><td>突出接触与运动点，同时约束静态区域不要漂移。</td></tr>
+        </tbody>
+      </table>
+      <div class="boundary"><strong>候选来源：</strong>诊断阶段继续使用 zero、reverse、translation、yaw 等受控扰动；面向真实决策的阶段必须加入 DiT4DiT 实际采样候选，否则无法证明对原 WAM 的真实动作分布有效。</div>
+    </section>
+
+    <section class="shell" id="concept-training">
+      <div class="section-head">
+        <div class="section-no">C4 · 训练目标</div>
+        <div><h2 class="section-title">绝对轨迹是辅助，动作造成的差异才是主监督</h2><p class="section-copy">核心设计是同一个初始状态下比较多个动作，阻止模型只根据场景猜测平均终点。</p></div>
+      </div>
+      <div class="formula-grid">
+        <article class="formula-card"><h3>完整轨迹损失</h3><code>L_traj = Huber(F̂ᵢ, Fᵢ)</code><p>监督所有物理时刻的 point flow；分别统计 Moving ADE、Moving FDE 与 Static ADE。</p></article>
+        <article class="formula-card"><h3>反事实差分损失 · 核心</h3><code>L_pair = Huber((F̂ᵢ−F̂ⱼ), (Fᵢ−Fⱼ))</code><p>同状态 candidate-vs-expert 或 candidate-vs-candidate 配对，直接学习“换动作会改变什么”。</p></article>
+        <article class="formula-card"><h3>方向与幅度</h3><code>L_effect = L_cos + λ · L_magnitude</code><p>只对真实 effect 足够大的动态分支计算方向，避免静止样本让 cosine 失真。</p></article>
+        <article class="formula-card"><h3>物理正则</h3><code>L_phys = L_static + L_contact + L_uncertainty</code><p>限制静态漂移，强化接触阶段，并显式输出预测不确定性供 reranker 使用。</p></article>
+      </div>
+      <div class="plain-flow">
+        <strong>总目标</strong>
+        <p><code>L = L_pair + λ₁L_traj + λ₂L_effect + λ₃L_phys</code></p>
+        <p>第一轮仍使用小模型和现有 63 个训练 states 做机制验证，不扩展成大规模视频生成器。只有因果 gate 出现可靠正信号后才增加数据和模型容量。</p>
+      </div>
+    </section>
+
+    <section class="shell" id="concept-gates">
+      <div class="section-head">
+        <div class="section-no">C5 · 评估协议</div>
+        <div><h2 class="section-title">四级 gate，逐级决定是否继续投入</h2><p class="section-copy">现有 9 个 validation states 已用于两轮判断，今后只能作为 dev；最终结论必须来自从未使用的新 episodes。</p></div>
+      </div>
+      <div class="gate-ladder">
+        <article class="gate-step"><div class="gate-id">G0</div><div><h3>无泄漏动作接口</h3><p>raw action、nominal flow、realized-flow oracle 三组对照；正式模型只允许使用部署前可得信息。</p></div><span class="gate-state">NEXT</span></article>
+        <article class="gate-step"><div class="gate-id">G1</div><div><h3>Held-out causal dynamics</h3><p>full 必须在新 locked test 上同时改善 Moving ADE/FDE 和 intervention cosine，paired bootstrap CI 支持提升。</p></div><span class="gate-state">PENDING</span></article>
+        <article class="gate-step"><div class="gate-id">G2</div><div><h3>真实候选排序</h3><p>对 DiT4DiT samples 的排序与真实 rollout outcome 一致；top-1 regret 和 pairwise ranking accuracy 优于 action-only scorer。</p></div><span class="gate-state">PENDING</span></article>
+        <article class="gate-step"><div class="gate-id">G3</div><div><h3>LIBERO 闭环收益</h3><p>相同 candidate budget 下，3D reranker 的 success rate 稳定高于原始 DiT4DiT 与非因果 3D 基线。</p></div><span class="gate-state">PENDING</span></article>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">C6 · 贡献定位</div>
+        <div><h2 class="section-title">贡献不在“用了 3D”，而在 3D 如何改变决策</h2></div>
+      </div>
+      <table class="matrix">
+        <thead><tr><th>可能贡献</th><th>与近期工作的区别</th><th>成立条件</th></tr></thead>
+        <tbody>
+          <tr><td>已有 WAM 的外挂式 3D causal prior</td><td>不从头训练 1B 级 3D-native WAM；保留 DiT4DiT，低成本校验候选。</td><td>显著提高 ranking 或闭环成功率。</td></tr>
+          <tr><td>同状态 paired intervention supervision</td><td>不只拟合单条 rollout；直接约束候选动作后果之差。</td><td>优于相同模型的 absolute-only loss。</td></tr>
+          <tr><td>Nominal / realized action-flow 分离</td><td>明确排除未来机器人状态泄漏，并给出 oracle 上限。</td><td>nominal-flow 模型在 locked test 上仍有效。</td></tr>
+          <tr><td>Prediction → ranking → execution 证据链</td><td>不以 auxiliary loss 或视觉质量代替动作有效性。</td><td>完整通过 G1、G2、G3。</td></tr>
+        </tbody>
+      </table>
+      <div class="boundary"><strong>当前状态：</strong>这些是已经固定的贡献假设，不是已经成立的论文结论。如果只改善 EPE 而没有改善 intervention、ranking 和闭环成功率，就不能宣称方法贡献成立。</div>
+    </section>
+
+    <section class="shell" id="concept-plan">
+      <div class="section-head">
+        <div class="section-no">C7 · 实施顺序</div>
+        <div><h2 class="section-title">按风险从低到高推进</h2><p class="section-copy">每一步都产生独立结论；前一 gate 不通过，不进入更昂贵的主干集成。</p></div>
+      </div>
+      <div class="next-list">
+        <div class="next-item"><div><strong>冻结当前 absolute-probe 结果</strong><span>63 train states / 9 dev branches 的结果只作为路线转换依据，不继续调参到通过。</span></div><em>已完成</em></div>
+        <div class="next-item"><div><strong>实现 nominal robot-flow exporter</strong><span>从当前 robot state 与 candidate commands 生成无接触结果泄漏的夹爪/机器人关键点轨迹。</span></div><em>立即实施</em></div>
+        <div class="next-item"><div><strong>执行 leakage audit</strong><span>比较 raw action、nominal flow、realized-flow oracle，量化当前输入可能获得了多少未来信息。</span></div><em>G0</em></div>
+        <div class="next-item"><div><strong>训练 paired trajectory probe</strong><span>完整时序 scene flow + paired effect 主损失；先在现有数据上 smoke，再决定是否扩大 counterfactual branches。</span></div><em>G1 dev</em></div>
+        <div class="next-item"><div><strong>建立新 locked test</strong><span>从未参与模型选择的 episodes 固定测试集；锁定后不再根据结果修改划分。</span></div><em>G1 test</em></div>
+        <div class="next-item"><div><strong>加入真实 DiT4DiT candidates</strong><span>从受控扰动过渡到策略实际会提出的动作，训练 goal-conditioned scorer 并测排序 regret。</span></div><em>G2</em></div>
+        <div class="next-item"><div><strong>闭环验证，再决定主干融合</strong><span>只有 reranker 提升 LIBERO success rate，才将 future-3D tokens 接入 Action DiT/shared latent。</span></div><em>G3 → 集成</em></div>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">C8 · 研究来源</div>
+        <div><h2 class="section-title">近期工作带来的具体设计约束</h2><p class="section-copy">借用共同原则，不直接照搬规模和结构。</p></div>
+      </div>
+      <div class="reference-grid">
+        <article class="reference-card"><h3>PointWorld</h3><p>状态与动作统一为 3D point flows，预测 action-conditioned scene dynamics；启发统一三维接口。</p><a href="https://arxiv.org/abs/2601.03782">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>Robot-Factored WM</h3><p>动作命令先经控制器与运动学形成部署可得 nominal trajectory，避免 future-state leakage。</p><a href="https://arxiv.org/abs/2607.22535">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>UNITAS</h3><p>action flow、scene flow、世界坐标与 physical time 的统一表达；启发完整轨迹监督和闭环一致性。</p><a href="https://arxiv.org/abs/2610.12099">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>PointWAM</h3><p>把 actor 与 scene 分解后在共享时空坐标中联合预测；启发机器人轨迹与场景轨迹显式解耦。</p><a href="https://arxiv.org/abs/2610.02840">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>WSA</h3><p>联合 action-conditioned 3D world model 与 3D inverse dynamics；启发最终必须闭合世界—动作回路。</p><a href="https://arxiv.org/abs/2607.03941">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>RoboWM-Bench</h3><p>预测质量不能代替可执行性；启发最终以 embodied execution 和任务完成判断世界模型价值。</p><a href="https://arxiv.org/abs/2604.19092">查看论文 ↗</a></article>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="stop-box">
+        <h3>“停止路线”到底停止什么</h3>
+        <p><strong>停止：</strong>继续把当前逐样本 absolute endpoint checkpoint 接入 Cosmos/Action DiT，或通过增加训练步数、调权重把它包装成成功。<br><strong>不停止：</strong>WAM+3D 总项目、counterfactual rollout 数据、三维轨迹监督和让 3D 真正帮助动作的目标。若 nominal + paired intervention 仍不能通过 G1，才停止显式 point-flow forward model 这一分支，转向 joint world-action latent 或 3D contact/affordance scorer。</p>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="section-head">
+        <div class="section-no">C9 · 关键入口</div>
+        <div><h2 class="section-title">数据、模型与结论文件</h2></div>
+      </div>
+      <div class="files">
+        <code>utils/export_libero_counterfactual_rollouts.py</code>
+        <code>utils/train_wam3d_causal_probe.py</code>
+        <code>utils/plan_wam3d_causal_scaleup.py</code>
+        <code>utils/filter_wam3d_causal_rollouts.py</code>
+        <code>docs/wam3d_progress.md</code>
+        <code>artifacts/results/wam3d_causal_scaleup_probe_400ep_3seed/report.json</code>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <div class="shell">WAM+3D · Internal research progress &amp; current concept · Updated 2026-10-26 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">参考技术构思</a></div>
+  </footer>
+  <script>
+    (() => {
+      const buttons = [...document.querySelectorAll('[data-view-target]')];
+      const panels = [...document.querySelectorAll('[data-view]')];
+      const navs = [...document.querySelectorAll('[data-nav]')];
+
+      function setView(view, updateHash = true) {
+        const next = view === 'concept' ? 'concept' : 'progress';
+        panels.forEach(panel => { panel.hidden = panel.dataset.view !== next; });
+        navs.forEach(nav => { nav.hidden = nav.dataset.nav !== next; });
+        buttons.forEach(button => {
+          const selected = button.dataset.viewTarget === next;
+          button.classList.toggle('active', selected);
+          button.setAttribute('aria-selected', String(selected));
+        });
+        document.title = next === 'concept'
+          ? 'WAM+3D · 当前技术构想'
+          : 'WAM+3D · 阶段性研究进展';
+        if (updateHash) history.replaceState(null, '', next === 'concept' ? '#concept' : '#progress');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      buttons.forEach(button => button.addEventListener('click', () => setView(button.dataset.viewTarget)));
+      document.addEventListener('click', event => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link) return;
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target?.closest('[data-view="concept"]')) setView('concept', false);
+        if (target?.closest('[data-view="progress"]')) setView('progress', false);
+      });
+      setView(location.hash.startsWith('#concept') ? 'concept' : 'progress', false);
+    })();
+  </script>
+</body>
+</html>
