@@ -269,6 +269,17 @@
     .compare-card ul { margin: 15px 0 0; padding-left: 20px; color: var(--muted); }
     .compare-card li + li { margin-top: 7px; }
     .compare-arrow { display: grid; place-items: center; color: var(--mint); font-size: 28px; }
+    .route-table-wrap { margin-top: 18px; overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; }
+    .route-table { width: 100%; min-width: 700px; border-collapse: collapse; background: var(--surface); }
+    .route-table th, .route-table td { padding: 14px 17px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .route-table th { color: var(--mint); font-size: 13px; background: rgba(128,230,184,.055); }
+    .route-table td { font-size: 13px; color: var(--muted); }
+    .route-table td:first-child { width: 18%; color: var(--text); font-weight: 700; }
+    .route-table tr:last-child td { border-bottom: 0; }
+    .reason-chain { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-top: 18px; }
+    .reason-card { padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+    .reason-card b { display: block; color: var(--cyan); font-size: 14px; }
+    .reason-card p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
     .tag { color: var(--cyan); font: 800 11px ui-monospace, monospace; letter-spacing: .08em; }
     .architecture {
       display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
@@ -301,6 +312,8 @@
     .reference-card { padding: 21px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
     .reference-card h3 { margin: 0 0 8px; font-size: 18px; }
     .reference-card p { margin: 0; color: var(--muted); font-size: 13px; }
+    .reference-card p + p { margin-top: 10px; }
+    .reference-card p strong { color: var(--text); }
     .reference-card a { display: inline-block; margin-top: 12px; font-size: 12px; }
     .stop-box { padding: 27px; border: 1px solid rgba(255,198,109,.28); border-radius: 20px; background: linear-gradient(145deg, rgba(255,198,109,.08), rgba(13,25,23,.84)); }
     .stop-box h3 { margin: 0 0 10px; font-size: 23px; }
@@ -320,6 +333,7 @@
       .architecture { grid-template-columns: 1fr 1fr; }
       .arch-node:not(:last-child)::after { display: none; }
       .reference-grid { grid-template-columns: 1fr 1fr; }
+      .reason-chain { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
       .shell { width: min(calc(100% - 24px), var(--max)); }
@@ -361,8 +375,8 @@
         <a href="#experiments">实验</a><a href="#issues">问题</a><a href="#next">下一步</a>
       </nav>
       <nav aria-label="当前构想导航" data-nav="concept" hidden>
-        <a href="#concept-overview">判断</a><a href="#concept-architecture">路线</a>
-        <a href="#concept-training">验证问题</a><a href="#concept-gates">验收</a><a href="#concept-plan">实施</a>
+        <a href="#concept-overview">判断</a><a href="#concept-comparison">新旧对照</a><a href="#concept-architecture">路线</a>
+        <a href="#concept-training">验证问题</a><a href="#concept-gates">验收</a><a href="#concept-plan">实施</a><a href="#concept-related-work">相关工作</a>
       </nav>
       <div class="top-actions">
         <div class="view-switch" role="tablist" aria-label="页面视图">
@@ -626,6 +640,8 @@
         <article class="work-card"><div class="icon">训练目标 / 评估</div><h3>监督与可信评估</h3><ul><li>未来位姿探针：平移、旋转、点轨迹、交互与相对当前状态的监督。</li><li>正确/错误三维条件使用相同扩散噪声、时间步和随机失活状态。</li><li>固定留出样本，进行帧级与轨迹级自助法置信区间评估。</li></ul></article>
         <article class="work-card"><div class="icon">训练 / 模型保存</div><h3>训练基础设施</h3><ul><li>官方完整权重 + 三维模块增量权重的加载机制。</li><li>只保存几何模块或 WAM3D 增量模块，避免反复保存多十亿参数的 Cosmos。</li><li>分模块学习率、受控冻结、梯度范数和隐藏表征变化日志。</li></ul></article>
         <article class="work-card"><div class="icon">质量检查 / 复现</div><h3>复现与回归</h3><ul><li>独立 DiT4DiT / LIBERO 环境与 RTX 4090 单卡链路。</li><li>102 项 CPU 测试覆盖编码、控制、数据、评估与梯度路径。</li><li>所有数据、日志、模型权重与 JSON 结果集中于 <code>artifacts/</code>。</li></ul></article>
+        <article class="work-card"><div class="icon">反事实 / 动作后果</div><h3>候选动作与后果实验</h3><ul><li>为同一初始状态构造多个候选动作，记录物体和夹爪轨迹；旧训练/开发集含 71 个分叉、31 条轨迹、497 条候选轨迹。</li><li>实现原始动作、名义夹爪运动、局部三维几何和接触热图等对照，分别检查轨迹误差与动作干预误差。</li><li>跨状态配对审计发现：旧数据中完全相同的跨状态动作仅出现在零运动命令，不能支撑有运动动作的几何对照。</li></ul></article>
+        <article class="work-card"><div class="icon">数据诊断 / 修复</div><h3>独立重放与标签审计</h3><ul><li>定位“只恢复物理状态，未完整重置控制器”的执行顺序问题，新增逐候选完整重置模式。</li><li>单分叉 7 个新候选独立重放后，目标物体位置误差约 10<sup>−8</sup> 米；旧数据不覆盖。</li><li>固定种子、三任务×三类别共 9 个分叉完成分层抽查；54 条非专家候选中 26 条位置偏差超过 0.5 毫米。</li></ul></article>
       </div>
     </section>
 
@@ -790,27 +806,44 @@
       </div>
     </section>
 
-    <section class="shell">
+    <section class="shell" id="concept-comparison">
       <div class="section-head">
         <div class="section-no">C1 · 路线关系</div>
         <div><h2 class="section-title">保留最终目标，先修正验证顺序</h2><p class="section-copy">“三维先验”就是物体的形状、三维位置、朝向，以及它与夹爪的相对关系。最终要证明这些信息能改善动作，而不只是让模型内部特征发生变化。</p></div>
       </div>
       <div class="compare-grid">
         <article class="compare-card">
-          <div class="tag">长期目标</div>
-          <h3>三维信息 → 视频表征 → 机器人动作</h3>
-          <p>WAM 是结合视频世界模型与动作生成的框架。物体三维信息先融入视频模型的内部表示，再由动作模块读取；不直接绕过视频模块送给动作头。</p>
-          <ul><li>早期实验显示视频表征可利用三维信息预测部分未来物体运动。</li><li>动作与闭环任务的稳定收益尚未证明。</li><li>这个长期目标没有因当前数据问题而取消。</li></ul>
+          <div class="tag">最早做法 · 已实施</div>
+          <h3>先把静态三维信息接进 WAM</h3>
+          <p>用仿真器给出的物体身份、点云、位姿和图像区域做几何特征，通过适配模块注入视频模型内部表征，再由动作模块读取；主要检查未来三维预测和动作误差。</p>
+          <ul><li>已经做了多代编码器、视频内部注入和正确/错配三维消融。</li><li>未来物体平移和点轨迹预测有改善，旋转与动作收益没有稳定通过。</li><li>局限：三维表征变化，并不等于模型会用三维信息区分候选动作的真实后果。</li></ul>
         </article>
         <div class="compare-arrow" aria-hidden="true">→</div>
         <article class="compare-card">
-          <div class="tag">当前研究步骤</div>
-          <h3>可信数据 → 动作后果 → 三维增益</h3>
-          <p>先保证每个候选动作从独立、相同的初始状态执行；再测初始三维状态是否影响动作后果，最后比较正确三维与图像、原始动作等基线。</p>
-          <ul><li>目前完成了单分叉修复和 9 分叉旧数据抽查。</li><li>尚未完成 71 分叉重导或模型重新训练。</li><li>若三维确实改善动作判断，再接回 WAM 视频与动作链路。</li></ul>
+          <div class="tag">当前步骤 · 验证顺序改变</div>
+          <h3>先查清动作后果，再检验三维增量</h3>
+          <p>先独立重放每个候选动作并修正标签；再比较“同状态换动作”和“同动作换初始物体位置”，最后检验正确三维是否胜过原始动作、图像和错配三维。</p>
+          <ul><li>已经完成单分叉修复、9 分叉分层审计和旧数据配对覆盖检查。</li><li>71 分叉重导、几何干预的充分样本、修正数据上的模型复核尚未完成。</li><li>若增量成立，仍按“三维 → WAM 视频表征 → Action DiT”回到原目标。</li></ul>
         </article>
       </div>
-      <div class="boundary"><strong>研究边界：</strong>当前的候选动作与物体后果分析是诊断工具，不是已经完成的动作选择系统。只预测物体轨迹更准确，也不能直接宣称机器人任务成功率提高。</div>
+      <div class="route-table-wrap">
+        <table class="route-table" aria-label="最早路线与当前路线逐项对照">
+          <thead><tr><th>比较</th><th>最早路线</th><th>当前路线</th></tr></thead>
+          <tbody>
+            <tr><td>核心问题</td><td>三维特征能否进入视频表征并改善预测？</td><td>初始几何是否改变某个动作的后果；模型是否因此选得更好？</td></tr>
+            <tr><td>训练与数据</td><td>以原示范轨迹训练视频/动作，加未来三维辅助监督。</td><td>先修正候选动作独立重放，再用动作—物体后果差和几何干预做可识别对照。</td></tr>
+            <tr><td>评价重点</td><td>未来位姿/点轨迹误差、动作去噪误差。</td><td>后果差的大小与方向、候选排序、相同预算的 RGB/原始动作基线，最终闭环成功率。</td></tr>
+            <tr><td>不变之处</td><td colspan="2">最终仍要让初始三维信息经 WAM 视频表征影响 Action DiT；当前的后果预测是诊断与验收环节，不是另起一个已成功的模型。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="reason-chain">
+        <article class="reason-card"><b>① 实验发现</b><p>“能预测未来物体位置”与“动作选得更好”没有同步出现；直接增加三维摘要也未解决动作收益。</p></article>
+        <article class="reason-card"><b>② 文献启发</b><p>近期工作把动作、机器人运动与场景三维变化联系起来，提醒我们检验动作造成的后果，而非只证明有静态三维特征。</p></article>
+        <article class="reason-card"><b>③ 数据审计修正优先级</b><p>旧候选执行存在控制器顺序残留；先恢复独立重放和可信标签，才能区分数据错误、动作接口失配与模型没有利用三维。</p></article>
+      </div>
+      <div class="plain-flow"><strong>当前结论，用一句话说</strong><p>三维信息已经能进入视频表征，并帮助预测部分未来物体运动；但尚无可靠证据说明它能让机器人选出更好的动作。旧候选数据有顺序残留，所以先修数据、再判断“几何影响后果”与“模型利用几何”这两个独立问题。</p></div>
+      <div class="boundary"><strong>研究边界：</strong>当前的候选动作与物体后果分析是诊断工具，不是已经完成的动作选择系统。当前三维真值主要来自仿真器；真实部署还需解决从传感器获得可靠初始三维信息。只预测物体轨迹更准确，也不能直接宣称机器人任务成功率提高。</div>
     </section>
 
     <section class="shell" id="concept-architecture">
@@ -890,7 +923,7 @@
         <thead><tr><th>可能的贡献</th><th>目前做到哪里</th><th>还需要什么证据</th></tr></thead>
         <tbody>
           <tr><td>可靠的动作—物体后果数据</td><td>找到旧数据的顺序依赖，修正方式已在单分叉验证；9 个固定样本完成质量审计。</td><td>完成 71 分叉重导与独立验收，公开清楚的失败与剔除规则。</td></tr>
-          <tr><td>可部署三维信息的额外价值</td><td>目前只说明动作会影响物体，尚未证明正确三维比图像加动作更有用。</td><td>在新轨迹上稳定胜过强基线和错配三维，并排除未来信息泄漏。</td></tr>
+          <tr><td>执行前可获得的三维信息的额外价值</td><td>当前用仿真器给出的初始三维真值；尚未证明正确三维比图像加动作更有用。</td><td>在新轨迹上稳定胜过强基线和错配三维、排除未来信息泄漏；走向真实部署还需感知模块。</td></tr>
           <tr><td>视频世界模型与动作的有效耦合</td><td>早期已验证三维能影响视频表征，动作收益仍无稳定证据。</td><td>证明三维信息经视频表征进入动作模块，而非走捷径，并改善动作选择。</td></tr>
           <tr><td>机器人任务收益</td><td>尚未完成新路线的闭环验证。</td><td>在相同动作生成预算下，机器人连续执行任务的成功率稳定提高。</td></tr>
         </tbody>
@@ -913,19 +946,21 @@
       </div>
     </section>
 
-    <section class="shell">
+    <section class="shell" id="concept-related-work">
       <div class="section-head">
         <div class="section-no">C8 · 研究来源</div>
-        <div><h2 class="section-title">近期工作带来的具体设计约束</h2><p class="section-copy">借用共同原则，不直接照搬规模和结构。</p></div>
+        <div><h2 class="section-title">近期工作具体怎么处理三维与动作</h2><p class="section-copy">以下按论文原文区分“它实际做法”和“对我们的启发”。这些是设计依据，不是本项目结果；我们没有复现它们的大模型、数据规模或完整结构。</p></div>
       </div>
       <div class="reference-grid">
-        <article class="reference-card"><h3>PointWorld</h3><p>把机器人动作和物体运动都表示为三维点的移动，启发我们在同一空间里比较动作及其后果。</p><a href="https://arxiv.org/abs/2601.03782">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>Robot-Factored WM</h3><p>先由当前状态与控制命令估计机器人将怎样移动，而不是把执行后的真实轨迹提前交给模型。</p><a href="https://arxiv.org/abs/2607.22535">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>UNITAS</h3><p>用统一的三维坐标和时间描述动作与场景变化，启发我们检查整段运动，而非只看终点。</p><a href="https://arxiv.org/abs/2610.12099">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>PointWAM</h3><p>在同一时空坐标里描述机器人与场景的变化，启发我们分清“机器人做了什么”和“物体随后怎样动”。</p><a href="https://arxiv.org/abs/2610.02840">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>WSA</h3><p>把三维世界变化与动作学习相互连接，提醒我们不能只训练一个与最终动作无关的预测分支。</p><a href="https://arxiv.org/abs/2607.03941">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>RoboWM-Bench</h3><p>预测看起来准确，不代表机器人能完成任务；最终仍需检查连续执行时的结果。</p><a href="https://arxiv.org/abs/2604.19092">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>PointWorld · 给定动作，预测世界</h3><p><strong>论文做法：</strong>从当前 RGB-D 得到场景三维点；用已知机器人几何与运动学，把给定的机器人运动表示为夹爪表面点随时间的移动；模型据此一次预测未来多步场景点的三维位移。训练时对真正移动的点加权，并可用预测后果比较候选动作。</p><p><strong>对我们：</strong>把“同一状态、不同动作会造成什么物体运动”作为明确问题，而不是仅看静态三维特征是否改变 WAM。<strong>边界：</strong>论文的机器人点运动须能从可用动作可靠求出；我们当前的名义夹爪轨迹与控制器真实执行失配，不能照搬其输入。</p><a href="https://arxiv.org/html/2601.03782v1" target="_blank" rel="noopener noreferrer">阅读方法原文 ↗</a></article>
+        <article class="reference-card"><h3>WSA₁ · 世界与动作双向约束</h3><p><strong>论文做法：</strong>联合训练三类预测：给定动作预测未来三维世界状态；用三维目标状态约束视觉状态变化；再由目标三维状态生成动作。三维世界与动作分支通过共享注意力交换信息，不把世界预测当成与动作无关的独立装饰。</p><p><strong>对我们：</strong>若动作后果诊断成立，后续须检查三维变化是否真的传到动作模块。<strong>边界：</strong>我们还没有实现或复现其三专家联合结构，也没有获得相应闭环收益。</p><a href="https://arxiv.org/html/2607.03941v2" target="_blank" rel="noopener noreferrer">阅读方法原文 ↗</a></article>
+        <article class="reference-card"><h3>4D-WAM · 对齐运动，不只对齐静态特征</h3><p><strong>论文做法：</strong>把视频模型的中间特征与四维轨迹模型的特征投到共同空间；不强行匹配两者的绝对特征，而是对齐相邻帧的特征变化，并约束起点到终点的对应关系。</p><p><strong>对我们：</strong>早期“注入静态几何 + 预测未来位置”不足以说明动作相关动态已经学会；若回到 WAM 内部，可优先验证运动差和时序对齐。<strong>边界：</strong>目前只是后续可检验的训练思路，我们未复现其轨迹教师和完整损失。</p><a href="https://arxiv.org/html/2608.08023v2" target="_blank" rel="noopener noreferrer">阅读方法原文 ↗</a></article>
+        <article class="reference-card"><h3>PointWAM · 手与场景共同演化</h3><p><strong>论文做法：</strong>把当前场景点云、手部关键点和语言指令放在同一三维坐标中，由共享模型同时预测场景点轨迹和手部关键点轨迹，再把预测的手部运动转换为机器人动作；场景运动监督共享表征。</p><p><strong>对我们：</strong>只预测物体或只预测夹爪都可能遗漏二者的互动；应分别记录机器人运动、物体运动与接触。<strong>边界：</strong>论文偏向从指令生成手部运动，我们当前先做给定候选动作的后果诊断，任务方向不同。</p><a href="https://arxiv.org/html/2610.02840v1" target="_blank" rel="noopener noreferrer">阅读方法原文 ↗</a></article>
+        <article class="reference-card"><h3>UNITAS · 统一三维坐标与物理时间</h3><p><strong>论文做法：</strong>用相机标定和深度把视觉位置锚定到米制三维空间；把夹爪/手的动作轨迹与场景点轨迹都表示为相对当前位置的位移，并按真实经过的时间编码。模型既有动作生成，也有给定动作轨迹预测场景变化的模式。</p><p><strong>对我们：</strong>动作、初始几何和未来物体位移需要同一坐标系与时间尺度；几何干预要比较“相对初始位置的运动”，不能把物体初始平移本身当作动作效果。<strong>边界：</strong>我们没有构建其三维原生统一模型。</p><a href="https://arxiv.org/html/2610.12099v1" target="_blank" rel="noopener noreferrer">阅读方法原文 ↗</a></article>
+        <article class="reference-card"><h3>Robot-Factored WM · 区分命令与执行</h3><p><strong>论文做法：</strong>先让机器人的控制器和运动学把原始命令转换为部署时可得到的“名义机器人运动”，再渲染机器人几何与深度去条件化视频模型；执行后的真实轨迹只作事后诊断，因为它包含接触后果。</p><p><strong>对我们：</strong>严格分清原始动作、执行前可计算的运动和执行后才知道的夹爪轨迹。我们试过名义夹爪运动，但当前实现与控制器执行不匹配，所以暂以原始动作做强基线，先修动作接口。<strong>边界：</strong>这不是否定该论文的方法。</p><a href="https://arxiv.org/html/2607.22535v1" target="_blank" rel="noopener noreferrer">阅读方法原文 ↗</a></article>
+        <article class="reference-card"><h3>RoboWM-Bench · 评价要落到执行</h3><p><strong>论文做法：</strong>把世界模型生成的操控视频转换成机器人可执行的动作，在物理仿真中检验任务完成情况；指出视觉上合理的预测与实际可执行性不总一致。</p><p><strong>对我们：</strong>未来物体预测误差、候选排序和机器人闭环成功率是不同层次的证据。即便前两者改善，也不能代替最终任务验证。<strong>边界：</strong>它是评价研究，不是我们三维注入结构的直接模板。</p><a href="https://arxiv.org/abs/2604.19092" target="_blank" rel="noopener noreferrer">阅读论文 ↗</a></article>
       </div>
+      <div class="plain-flow"><strong>综合判断：哪些来自论文，哪些来自我们自己的实验？</strong><p>论文共同支持“动作与三维场景变化应在可比较的空间和时间里建模”，但没有一篇证明“给现有 DiT4DiT 加静态物体 token 就会改善动作”。从静态注入转向动作后果对照，是我们结合早期动作失败与论文原则作出的研究判断；把独立重放修复提到最前，则是新发现的数据问题直接决定的。二者都不是已验证的新模型贡献。</p></div>
     </section>
 
     <section class="shell">
