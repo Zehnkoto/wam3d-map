@@ -357,12 +357,12 @@
     <div class="shell topbar-inner">
       <div class="brand"><span class="brand-mark">3D</span><span>WAM+3D 研究进展</span></div>
       <nav aria-label="阶段进展导航" data-nav="progress">
-        <a href="#overview">总览</a><a href="#route">路线</a><a href="#work">工作量</a>
+        <a href="#overview">总览</a><a href="#current-check">最新进展</a><a href="#route">路线</a><a href="#work">工作量</a>
         <a href="#experiments">实验</a><a href="#issues">问题</a><a href="#next">下一步</a>
       </nav>
       <nav aria-label="当前构想导航" data-nav="concept" hidden>
-        <a href="#concept-overview">判断</a><a href="#concept-architecture">架构</a>
-        <a href="#concept-training">训练</a><a href="#concept-gates">Gate</a><a href="#concept-plan">实施</a>
+        <a href="#concept-overview">判断</a><a href="#concept-architecture">路线</a>
+        <a href="#concept-training">验证问题</a><a href="#concept-gates">验收</a><a href="#concept-plan">实施</a>
       </nav>
       <div class="top-actions">
         <div class="view-switch" role="tablist" aria-label="页面视图">
@@ -376,41 +376,55 @@
 
   <main id="progress-view" class="view-panel" data-view="progress">
     <section class="hero shell" id="overview">
-      <div class="eyebrow">阶段报告 · 2026-10-21</div>
+      <div class="eyebrow">研究进展 · 2026-10-28</div>
       <h1>让对象级三维先验<br>真正进入 WAM 的行动链路</h1>
-      <p class="hero-lead">研究对象级点云、位姿与身份如何编码，如何先改变 DiT4DiT / Cosmos 的视频表征，再由动作生成模块产生连续动作片段。</p>
+      <p class="hero-lead">研究物体的形状、位置和运动怎样帮助机器人选择动作。当前重点是修正仿真数据的候选动作重放方式，再判断三维信息是否真的带来决策增益。</p>
       <div class="hero-meta">
-        <span class="pill live">当前阶段：P2</span><span class="pill">主基座：DiT4DiT</span>
+        <span class="pill live">当前阶段：反事实数据质量核查</span><span class="pill">主基座：DiT4DiT</span>
         <span class="pill">三维编码器：冻结的 Point-MAE</span><span class="pill">数据：LIBERO-object 仿真真值三维数据</span>
       </div>
 
       <div class="headline-grid">
         <article class="verdict">
           <div class="eyebrow">当前结论</div>
-          <h2>三维信息 → 视频隐藏表征已经成立；<br>视频隐藏表征 → 动作尚未通过最终验证。</h2>
-          <p>正确三维信息已能显著改善单帧视频残差对未来对象平移、点轨迹和交互的预测；动作生成模块也首次出现微弱的“正确位姿更好”信号。但正确三维信息尚未稳定优于完全关闭三维信息，因此不能宣称动作或闭环成功率已经提升。</p>
+          <h2>三维信息能够进入视频表征；<br>能否改善动作，仍没有可靠结论。</h2>
+          <p>早期实验表明，正确的三维信息有助于预测物体未来位置；但动作预测和闭环任务尚未证明受益。最近又发现：旧反事实数据的部分候选动作没有真正独立重放，导致物体轨迹和接触标签发生毫米级偏差。现在先修数据、复核原结论，再继续判断模型。</p>
         </article>
         <div class="status-stack">
-          <div class="status-card good"><small>已通过</small><strong>未来三维表征验证</strong></div>
-          <div class="status-card warn"><small>部分观察到</small><strong>动作对物体位姿的敏感性</strong></div>
-          <div class="status-card"><small>尚未通过</small><strong>动作有效性与闭环执行</strong></div>
+          <div class="status-card good"><small>已验证</small><strong>修正后可独立重放</strong></div>
+          <div class="status-card warn"><small>正在核查</small><strong>旧动作后果标签的偏差</strong></div>
+          <div class="status-card"><small>尚未证明</small><strong>三维改善动作与闭环执行</strong></div>
         </div>
       </div>
     </section>
 
     <section class="shell">
       <div class="stats">
-        <div class="stat"><b>102/102</b><span>CPU 回归测试通过</span></div>
-        <div class="stat"><b>24 + 9</b><span>空间小规模试验：训练 / 验证轨迹数</span></div>
-        <div class="stat"><b>27 × 4</b><span>固定留出帧 × 对照随机种子</span></div>
-        <div class="stat"><b>3</b><span>动作阶段的 200 步受控实验</span></div>
+        <div class="stat"><b>9</b><span>事先固定、覆盖三任务与三类状态的旧数据分叉</span></div>
+        <div class="stat"><b>26 / 54</b><span>抽样中独立重放后位置偏差超过 0.5 毫米的非专家候选</span></div>
+        <div class="stat"><b>7 / 7</b><span>一个修正后分叉的全部候选均可独立重放</span></div>
+        <div class="stat"><b>35 / 56</b><span>单个分叉中新旧接触数量不同的“候选×时刻”</span></div>
       </div>
+    </section>
+
+    <section class="shell" id="current-check">
+      <div class="section-head">
+        <div class="section-no">最新进展</div>
+        <div><h2 class="section-title">为什么先检查数据，而不是继续调模型</h2><p class="section-copy">“反事实分叉”指从同一个仿真起点分别执行不同动作，再比较物体后果。要把后果差异归因于动作，每个候选都必须从真正相同、且不受上一个候选影响的状态出发。</p></div>
+      </div>
+      <div class="detail-grid">
+        <article class="detail-card"><h4>发现了什么</h4><p>旧流程只恢复仿真器记录的物理状态，没有在每个候选动作前完整重置夹爪、控制器等内部状态。按原顺序重放可以复现旧文件，但把候选分别独立重放时，部分物体轨迹会变。9 个事先固定的样本中，54 个非专家候选有 26 个最大位置偏差超过 0.5 毫米；最大为 2.86 毫米。</p></article>
+        <article class="detail-card"><h4>已经修到哪一步</h4><p>导出流程增加“每个候选动作前完整重置”。一个分叉重新导出后，7 个候选均能独立重放；目标物体位置误差约为一亿分之一米。接触标签也已按新流程重算并通过重放检查。旧文件保留，尚未批量替换。</p></article>
+        <article class="detail-card"><h4>哪些旧结论要谨慎</h4><p>一个修正分叉中，56 个“候选动作×时间步”有 35 个的新旧接触数量不同。旧实验里只有零点几毫米的模型优劣，以及“接触热图为什么无效”的解释，都需要用修正数据重新检验；不能把它们直接归因于三维先验无用。</p></article>
+        <article class="detail-card"><h4>哪些结论没有被推翻</h4><p>旧数据中确实观察到换动作会改变物体运动；早期视频模型也确实能读入三维信息。此次只抽查了 9 个分叉，不能把 26/54 当作全部数据的错误率，更不能说此前所有较大动作效果都不存在。动作与闭环收益仍待证明。</p></article>
+      </div>
+      <div class="boundary"><strong>数字的含义：</strong>“最大位置偏差”是同一候选在整段轨迹里，新旧重放物体位置相差最大的时刻；0.5 毫米是这次数据审计的筛查阈值，不是模型成功标准。9 个分叉覆盖三项任务和三类状态，但样本量不足以推算全部 71 个旧分叉的比例。</div>
     </section>
 
     <section class="shell" id="route">
       <div class="section-head">
         <div class="section-no">01 · 技术路线</div>
-        <div><h2 class="section-title">当前完整技术路线</h2><p class="section-copy">不是把点云特征直接塞给动作头，而是让三维信息先改变视频模型的内部表征，再由动作模型读取这个表征生成动作。</p></div>
+        <div><h2 class="section-title">长期目标路线</h2><p class="section-copy">最终仍希望三维信息先改变视频模型的内部表征，再帮助动作模型生成动作；这条完整链路尚未验证通过。当前优先完成可信动作后果数据。</p></div>
       </div>
       <div class="pipeline" aria-label="WAM+3D 技术链路">
         <div class="pipe-node"><i>第一步 · 输入</i><strong>仿真器提供的对象级三维真值</strong><span>物体局部点云、4×4 位姿、对象编号、图像边界框、有效标记、夹爪位姿</span></div>
@@ -424,10 +438,10 @@
 
       <div class="route-explain">
         <h3>第一步详解：数据是什么，又从哪里来？</h3>
-        <p>LIBERO 是基于 MuJoCo 的机器人操作仿真环境。每条专家示范都记录了任务语言、摄像机画面、机器人状态、专家动作和逐帧仿真状态。我们重放每一帧仿真状态，直接读取物体和夹爪的真实三维状态，再保存成与原始轨迹配套的几何伴随文件。它不是从图片里估计出来的，所以当前阶段没有检测误差。</p>
+        <p>LIBERO 是基于 MuJoCo 的机器人操作仿真环境。每条专家示范都记录了任务语言、摄像机画面、机器人状态、专家动作和逐帧仿真状态。我们恢复记录的物理状态，读取物体和夹爪的三维状态，再保存成与原始轨迹配套的几何文件。最近的核查说明：若要从同一时刻分别执行多个候选动作，还必须逐候选完整重置控制器与夹爪内部状态；只恢复物理状态不够。</p>
         <div class="source-flow">
           <div class="source-step"><b>LIBERO 专家示范</b><span>例如“拿起牛奶盒并放进篮子”，包含图像和正确动作。</span></div>
-          <div class="source-step"><b>恢复逐帧仿真状态</b><span>让 MuJoCo 精确回到示范中的每一个时刻。</span></div>
+          <div class="source-step"><b>恢复逐帧仿真状态</b><span>回到示范记录的物理状态；独立动作对照还需重置控制器。</span></div>
           <div class="source-step"><b>读取三维真值</b><span>取得对象网格、点云、位姿、夹爪位姿和对象在画面中的位置。</span></div>
           <div class="source-step"><b>保存几何伴随文件</b><span>与原始视频和动作一一对齐，训练时同步读取。</span></div>
         </div>
@@ -618,35 +632,35 @@
     <section class="shell" id="experiments">
       <div class="section-head">
         <div class="section-no">03 · 实验过程</div>
-        <div><h2 class="section-title">实验是如何一步步收敛的</h2><p class="section-copy">每次负结果都用于排除一个解释，并推动下一次结构或数据修正。</p></div>
+        <div><h2 class="section-title">此前实验与当前核查</h2><p class="section-copy">以下早期模型结果是历史阶段的观察。涉及旧反事实候选轨迹与接触标签的细小差异，须等待独立重放数据重算后再解释。</p></div>
       </div>
       <div class="timeline">
-        <article class="event fail"><span class="dot"></span><span class="event-tag">V1 · ACTION ONLY</span><div class="event-body"><h3>简单点云编码 + action loss</h3><p>wrong shape 与 correct shape 没有稳定排序。排除“接线完全不通”后，发现 ID / confidence shortcut 和 action-only 监督过于间接。</p></div></article>
-        <article class="event partial"><span class="dot"></span><span class="event-tag">V2 · POINT QUERIES</span><div class="event-body"><h3>无序点集编码与初始化修正</h3><p>改善 shape token 可分性，point branch 有真实梯度，但 action gate 仍失败，说明瓶颈不只在 encoder。</p></div></article>
-        <article class="event partial"><span class="dot"></span><span class="event-tag">PRETRAINED 3D</span><div class="event-body"><h3>Point-MAE + 共享度量坐标系</h3><p>引入冻结预训练 3D encoder、EEF-relative pose 与 metric scaling，使“3D prior”从单一 embedding 扩展为形状、坐标系和动态监督。</p></div></article>
-        <article class="event"><span class="dot"></span><span class="event-tag">FUTURE 3D GATE</span><div class="event-body"><h3>受控解冻首次证明 video hidden 有用</h3><p>正确 3D 在 held-out future translation / point trajectory 上显著优于 disabled 与 offset pose，主表征链路通过。</p></div></article>
-        <article class="event partial"><span class="dot"></span><span class="event-tag">ACTION BRIDGE</span><div class="event-body"><h3>当前单帧同时监督 future 3D 与 action</h3><p>future-3D 能力显著保持；action 对错误位姿出现微弱敏感，但 geometry presence 尚未显著改善 action。</p></div></article>
-        <article class="event fail"><span class="dot"></span><span class="event-tag">RESIDUAL TOKEN</span><div class="event-body"><h3>目标区域均值摘要没有解决 action gate</h3><p>显式追加 video residual summary 后，full 仍不优于 disabled，并丢失弱 pose-correctness 信号。由此排除“只因局部 token 被稀释”的简单解释。</p></div></article>
+        <article class="event fail"><span class="dot"></span><span class="event-tag">初版 · 仅动作监督</span><div class="event-body"><h3>简单点云编码与动作训练</h3><p>给出正确或错误的物体形状时，动作结果没有稳定区分。说明只用动作误差训练，模型容易依赖物体编号等捷径，而忽略三维形状。</p></div></article>
+        <article class="event partial"><span class="dot"></span><span class="event-tag">第二版 · 点云</span><div class="event-body"><h3>无序点集编码与初始化修正</h3><p>改进了物体形状特征的区分能力，点云分支也确实参与训练，但动作验证仍未通过，瓶颈不只在编码器。</p></div></article>
+        <article class="event partial"><span class="dot"></span><span class="event-tag">预训练三维编码</span><div class="event-body"><h3>Point-MAE 与统一米制坐标</h3><p>Point-MAE 是预先学过点云结构的编码器；我们保持其权重不变，并加入物体相对夹爪的位置、朝向，使三维信息不再只有抽象形状特征。</p></div></article>
+        <article class="event"><span class="dot"></span><span class="event-tag">未来三维预测</span><div class="event-body"><h3>视频内部表征能利用三维信息</h3><p>在独立验证轨迹上，给出正确三维信息时，对未来物体平移和点轨迹的预测优于关闭三维或使用错误位姿；这只证明中间表征有用。</p></div></article>
+        <article class="event partial"><span class="dot"></span><span class="event-tag">连接动作模型</span><div class="event-body"><h3>同时训练未来三维预测与动作</h3><p>未来三维预测能力得到保持；动作模型对错误物体位姿出现微弱反应，但加入正确三维仍未稳定改善动作。</p></div></article>
+        <article class="event fail"><span class="dot"></span><span class="event-tag">摘要特征</span><div class="event-body"><h3>给动作模型增加三维摘要仍未通过</h3><p>把目标区域的视频特征汇总后送给动作模型，正确三维仍未稳定优于关闭三维；因此问题不只是信息在许多视频特征中被稀释。</p></div></article>
       </div>
 
       <div class="results-grid">
         <article class="result-panel">
-          <h3>单帧 Future-3D gate <span class="gate pass">PASS</span></h3>
-          <p>Action-bridge checkpoint；9 validation episodes，episode-level paired bootstrap。</p>
-          <div class="metric"><div class="metric-row"><span>disabled − full · translation</span><b>+19.536 mm</b></div><div class="bar"><i style="--w:92%"></i></div></div>
-          <div class="metric"><div class="metric-row"><span>disabled − full · point trajectory</span><b>+19.431 mm</b></div><div class="bar"><i style="--w:91%"></i></div></div>
-          <div class="metric"><div class="metric-row"><span>disabled − full · interaction</span><b>+1.381 mm</b></div><div class="bar"><i style="--w:52%"></i></div></div>
-          <div class="metric"><div class="metric-row"><span>offset pose − full · point trajectory</span><b>+18.058 mm</b></div><div class="bar"><i style="--w:88%"></i></div></div>
-          <div class="result-note">translation 与 point trajectory 均为 9/9 episodes 胜出且 95% CI 全正。旋转的 full-vs-disabled 仍为反向，不能扩展解释为完整 SE(3) 全面提升。</div>
+          <h3>单帧未来三维预测 <span class="gate pass">阶段通过</span></h3>
+          <p>历史视频—动作联合模型；9 条独立验证轨迹。下列正值表示正确三维的预测误差更小。</p>
+          <div class="metric"><div class="metric-row"><span>关闭三维−正确三维：物体平移误差</span><b>+19.536 mm</b></div><div class="bar"><i style="--w:92%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>关闭三维−正确三维：物体表面点轨迹误差</span><b>+19.431 mm</b></div><div class="bar"><i style="--w:91%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>关闭三维−正确三维：物体与夹爪关系误差</span><b>+1.381 mm</b></div><div class="bar"><i style="--w:52%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>错误位姿−正确三维：表面点轨迹误差</span><b>+18.058 mm</b></div><div class="bar"><i style="--w:88%"></i></div></div>
+          <div class="result-note">物体平移与点轨迹在 9 条验证轨迹上均有改善；这里的毫米是预测误差，不是机器人动作误差。物体旋转没有同样通过，不能说完整三维运动已解决。</div>
         </article>
         <article class="result-panel">
-          <h3>Action gate <span class="gate partial">PARTIAL → FAIL</span></h3>
-          <p>相同 RGB / action label 与 diffusion 随机量，仅切换 geometry condition。</p>
-          <div class="metric"><div class="metric-row"><span>Action-only · offset − full</span><b>+0.0000004</b></div><div class="bar bad"><i style="--w:5%"></i></div></div>
-          <div class="metric"><div class="metric-row"><span>Action bridge · offset − full</span><b>+0.0000126</b></div><div class="bar"><i style="--w:58%"></i></div></div>
-          <div class="metric"><div class="metric-row"><span>Residual token · offset − full</span><b>−0.0000132</b></div><div class="bar bad"><i style="--w:37%"></i></div></div>
-          <div class="metric"><div class="metric-row"><span>Margin 达标次数</span><b>0 / 200</b></div><div class="bar bad"><i style="--w:1%"></i></div></div>
-          <div class="result-note">Action bridge 的 frame-level pose correctness 曾首次为正，但 episode CI 仍跨 0；三组实验都未建立 full 优于 disabled 的稳定证据。</div>
+          <h3>动作预测验证 <span class="gate partial">尚未通过</span></h3>
+          <p>保持图像、动作答案与随机噪声相同，只切换正确或错误的物体位姿。下列值是动作训练误差之差，不是成功率。</p>
+          <div class="metric"><div class="metric-row"><span>只训练动作：错误位姿−正确位姿</span><b>+0.0000004</b></div><div class="bar bad"><i style="--w:5%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>联合训练视频与动作：错误位姿−正确位姿</span><b>+0.0000126</b></div><div class="bar"><i style="--w:58%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>增加三维摘要：错误位姿−正确位姿</span><b>−0.0000132</b></div><div class="bar bad"><i style="--w:37%"></i></div></div>
+          <div class="metric"><div class="metric-row"><span>达到预设稳定优势的训练次数</span><b>0 / 200</b></div><div class="bar bad"><i style="--w:1%"></i></div></div>
+          <div class="result-note">联合训练出现过微弱正信号，但按整条轨迹统计仍不稳定；三组实验均不能证明正确三维让动作预测优于关闭三维。此处是历史阶段结果，与目前正在核查的候选动作数据分开看。</div>
         </article>
       </div>
     </section>
@@ -659,12 +673,12 @@
       <table class="matrix">
         <thead><tr><th>研究命题</th><th>状态</th><th>当前证据</th></tr></thead>
         <tbody>
-          <tr><td>对象级 point cloud / pose / ID 能被编码</td><td class="yes">已证明</td><td>三代 encoder、Point-MAE checkpoint、完整 forward/backward 与消融测试。</td></tr>
-          <tr><td>3D prior 能改变 WAM video representation</td><td class="yes">已证明</td><td>Cosmos-block geometry residual、非零 adapter gradient 与稳定 hidden delta。</td></tr>
-          <tr><td>改变后的 video hidden 包含有用未来 3D 信息</td><td class="yes">已证明</td><td>held-out translation / point trajectory / interaction 的 full-vs-disabled 与 pose correctness gate。</td></tr>
-          <tr><td>Action DiT 开始感知 3D pose correctness</td><td class="maybe">弱证据</td><td>Action bridge frame-level offset-pose paired delta 为正，episode-level 尚未显著。</td></tr>
-          <tr><td>3D prior 已提升 action prediction</td><td class="no">尚未证明</td><td>full-vs-disabled action loss 无显著优势；residual summary 消融失败。</td></tr>
-          <tr><td>3D prior 已提高 LIBERO 闭环成功率</td><td class="no">未测试</td><td>必须先通过离线 action gate，再进入闭环，避免高成本无效评估。</td></tr>
+          <tr><td>物体点云、位姿和身份能被编码</td><td class="yes">已证明</td><td>多种三维编码方式、预训练点云编码器，以及前向计算和梯度测试均已跑通。</td></tr>
+          <tr><td>三维信息能改变 WAM 视频内部表征</td><td class="yes">已证明</td><td>视频模型内部注入后，表征确实发生变化，训练梯度也能回到三维模块。</td></tr>
+          <tr><td>改变后的视频表征含有未来物体信息</td><td class="yes">部分证明</td><td>在独立验证轨迹上，对物体平移和表面点运动的预测优于关闭三维；旋转尚未通过。</td></tr>
+          <tr><td>动作模块会响应正确的物体位姿</td><td class="maybe">弱证据</td><td>单帧比较曾有微弱正信号，按整条轨迹统计仍不稳定。</td></tr>
+          <tr><td>正确三维已改善动作预测</td><td class="no">尚未证明</td><td>与关闭三维相比，没有稳定的动作误差优势；新数据质量问题也需要先排除。</td></tr>
+          <tr><td>正确三维已提高机器人任务成功率</td><td class="no">未测试</td><td>尚未完成新路线的闭环对照，不能用物体预测效果替代任务结果。</td></tr>
         </tbody>
       </table>
     </section>
@@ -672,24 +686,24 @@
     <section class="shell" id="issues">
       <div class="section-head">
         <div class="section-no">05 · 当前问题</div>
-        <div><h2 class="section-title">当前真正的问题在哪里</h2><p class="section-copy">问题已经从“工程链路是否工作”收缩为“什么数据与目标能让 action 必须使用 3D”。</p></div>
+        <div><h2 class="section-title">当前真正的问题在哪里</h2><p class="section-copy">先把数据可靠性与模型利用三维信息这两个问题分开，不再用一个失败指标同时解释两者。</p></div>
       </div>
       <div class="issue-grid">
         <article class="issue">
-          <h3>科学问题：action supervision 可辨识性不足</h3>
-          <p>同一 RGB、语言和动作标签下人为扰动 geometry，并没有与之对应的真实 counterfactual action 标签。模型可以忽略 3D；scalar diffusion loss 又混合 xyz、旋转和夹爪，使局部 metric 收益更难被观察。继续堆 adapter 或增大 margin 并不能自动解决这一点。</p>
+          <h3>数据质量：候选动作没有完全独立</h3>
+          <p>物理状态虽然恢复到同一时刻，控制器和夹爪内部缓存仍可能承接上一次执行。这样得到的“换动作后的物体后果”会混入执行顺序。新导出方式已在单分叉验证，接下来需要对旧 71 个训练与开发分叉重导并逐条检查。</p>
         </article>
         <article class="issue">
-          <h3>数据问题：shortcut 仍然存在</h3>
-          <p>固定 object ID↔mesh、任务文本和 RGB 可泄露 object / action 信息。需要更强的跨 pose、跨对象但操作语义匹配的数据，或聚焦接近、抓取、放置等真正 geometry-sensitive 帧。</p>
+          <h3>数据覆盖：旧数据还缺一个关键对照</h3>
+          <p>现有数据主要是“同一状态、换不同动作”；它可以测动作是否改变物体，却不能单独测“保持动作相同、只改变初始物体位置”会怎样。旧数据中的相同跨状态动作都是零运动命令；要回答三维几何是否改变有运动动作的后果，还需设计物理上合理的新仿真分叉。</p>
         </article>
         <article class="issue">
-          <h3>表征边界：旋转尚未通过</h3>
-          <p>当前可靠收益集中在 translation 与 point trajectory。rotation 的 full-vs-disabled 仍可能更差，不能把结果包装为完整 SE(3) dynamics 已解决。</p>
+          <h3>模型问题：三维增益尚未证明</h3>
+          <p>早期视频表征对未来物体平移和点轨迹有帮助，但动作预测没有稳定收益。修正数据后仍需与“只看动作”“图像加动作”“正确三维加动作”“错配三维加动作”公平比较；只改善物体轨迹误差，不等于机器人会选对动作。</p>
         </article>
         <article class="issue server">
-          <h3>临时工程阻塞：服务器 GPU device nodes</h3>
-          <p>断电重启后 PCI 与 NVIDIA 580.178.04 kernel modules 均可见，但 <code>/dev/nvidia*</code> 未生成，导致 <code>nvidia-smi</code> 失败。这是服务器驱动/udev 初始化问题，不是项目代码或 checkpoint 损坏。</p>
+          <h3>效应大小：不能把状态变化误读为动作作用</h3>
+          <p>一个单状态试验把物体水平移动 10 毫米后，原动作造成的末端运动变化约 0.89 毫米；即便给机器人零运动命令，也有约 0.62 毫米变化。两者同量级，因此这个单例只能证明新试验流程可运行，不能证明“动作与三维几何相互作用”已经足够明显。</p>
         </article>
       </div>
     </section>
@@ -711,14 +725,14 @@
     <section class="shell" id="next">
       <div class="section-head">
         <div class="section-no">07 · 下一步</div>
-        <div><h2 class="section-title">接下来按什么顺序做</h2><p class="section-copy">先提高诊断分辨率，再决定是否需要新数据；不再盲目重复200-step实验。</p></div>
+        <div><h2 class="section-title">接下来按什么顺序做</h2><p class="section-copy">先修正数据与标签，再重新检验方法，最后才考虑接回动作模型；不在已用过的测试集上反复调参。</p></div>
       </div>
       <div class="next-list">
-        <div class="next-item"><div><strong>恢复服务器 GPU device nodes</strong><span>无需重训；checkpoint 和结果均完整。</span></div><em>服务器管理员</em></div>
-        <div class="next-item"><div><strong>复评 action 分维度 matched loss</strong><span>已有 evaluator：translation(xyz) / rotation(rpy) / gripper，比较 full、disabled、offset pose。</span></div><em>下一实验</em></div>
-        <div class="next-item"><div><strong>聚焦 geometry-sensitive phases</strong><span>按接近、接触、搬运、放置阶段与 moving frames 分层，确认 3D 是否只对局部时段有用。</span></div><em>诊断 gate</em></div>
-        <div class="next-item"><div><strong>若 xyz 仍失败，转向 matched 数据设计</strong><span>构造相同语义、不同 pose/shape 且 action 真正不同的数据对，替代没有真实 counterfactual label 的强行 ranking。</span></div><em>科学决策</em></div>
-        <div class="next-item"><div><strong>action gate 通过后再做 closed-loop</strong><span>比较 baseline / full / disabled / wrong-pose 的 LIBERO success rate。</span></div><em>进入 P2 收尾</em></div>
+        <div class="next-item"><div><strong>重导旧训练与开发分叉</strong><span>固定原有 71 个分叉清单，在全新目录重新执行每个候选动作；每次先完整重置仿真器和控制器，不覆盖旧文件。</span></div><em>下一项</em></div>
+        <div class="next-item"><div><strong>逐条验收并重算接触标签</strong><span>核对物体位置、朝向、夹爪位置与接触是否能独立复现；记录未通过的分叉与原因。随后重新统计“换动作使物体变化至少 5 毫米”的样本数量。</span></div><em>数据质量</em></div>
+        <div class="next-item"><div><strong>在修正数据上复核旧模型结论</strong><span>保持相同训练预算，对比只用原始动作、使用正确三维、使用错配三维；尤其检查动作造成的物体差异，而不是只看单条轨迹预测。</span></div><em>方法检验</em></div>
+        <div class="next-item"><div><strong>补充同动作、不同初始位置的仿真对照</strong><span>只移动目标物体，动作与机器人初始状态保持一致，并加入零运动对照；先确认变化超过被动漂移与重放误差。</span></div><em>新数据</em></div>
+        <div class="next-item"><div><strong>有增益后再接回视频与动作主线</strong><span>正确三维需稳定优于原始动作和图像基线，才继续让视频表征与动作生成模块共同使用；最终仍要看机器人闭环完成任务的比例。</span></div><em>长期目标</em></div>
       </div>
     </section>
 
@@ -746,160 +760,156 @@
 
   <main id="concept-view" class="view-panel" data-view="concept" hidden>
     <section class="concept-hero shell" id="concept-overview">
-      <div class="eyebrow">当前技术构想 · 2026-10-26</div>
-      <h1>从静态几何注入，转向<br><em>反事实 3D 因果先验</em></h1>
-      <p class="hero-lead">保留 WAM+3D“让三维真正帮助动作”的总目标，但不再假设静态 geometry token 会被 Action DiT 自动使用。先让模型学会区分不同候选动作造成的三维后果，再把经过验证的动态先验接回动作生成。</p>
+      <div class="eyebrow">当前技术路线 · 2026-10-28</div>
+      <h1>先修正动作后果数据，<br><em>再验证三维能否帮助决策</em></h1>
+      <p class="hero-lead">总目标没有变：让物体三维信息进入 WAM 的视频表征，最终帮助机器人选对动作。近期实验发现旧候选动作数据存在重放顺序影响，因此先修正数据、重验模型；不把一次辅助目标失败等同于整个三维方向失败。</p>
       <div class="hero-meta">
-        <span class="pill live">主路线：3D causal reranker</span>
-        <span class="pill">候选生成：DiT4DiT</span>
-        <span class="pill">动作接口：nominal robot point flow</span>
-        <span class="pill">核心监督：paired intervention</span>
+        <span class="pill live">当前重点：候选轨迹独立重放</span>
+        <span class="pill">保持旧数据与新数据分开</span>
+        <span class="pill">下一问题：三维是否改变动作后果</span>
+        <span class="pill">最终目标：WAM 视频表征到动作</span>
       </div>
 
       <div class="headline-grid">
         <article class="verdict concept-verdict">
           <div class="eyebrow">路线判断</div>
-          <h2>不是重做 PointWorld，也不是放弃原 WAM+3D；而是先建立一条不可被忽略的动作—世界因果链。</h2>
-          <p>当前证据说明，3D state 对绝对 endpoint 预测有稳定但较小的帮助，却没有证明更会判断“换动作后的差异”。因此下一阶段停止扩展现有 absolute endpoint checkpoint，优先修正动作表示并训练反事实 trajectory model。</p>
+          <h2>目前首先要排除数据问题，才能公平判断方法问题。</h2>
+          <p>旧数据从同一物理状态执行多个候选动作，但仅恢复物理状态，不足以清除控制器与夹爪缓存。修正方式已在一个分叉验证；9 个固定抽样分叉显示旧标签的偏差不容忽略。下一步重导 71 个旧训练/开发分叉，然后再比较三维模型和强基线。</p>
         </article>
         <div class="status-stack">
-          <div class="status-card good"><small>绝对 endpoint</small><strong>3D 有小幅增益</strong></div>
-          <div class="status-card warn"><small>Intervention sensitivity</small><strong>严格 gate 未通过</strong></div>
-          <div class="status-card"><small>下一项实现</small><strong>Nominal action flow</strong></div>
+          <div class="status-card good"><small>修正流程</small><strong>单分叉 7 个候选可独立重放</strong></div>
+          <div class="status-card warn"><small>旧数据</small><strong>存在候选轨迹与接触标签偏差</strong></div>
+          <div class="status-card"><small>当前结论</small><strong>三维的动作收益尚未证明</strong></div>
         </div>
       </div>
 
       <div class="evidence-strip">
-        <div class="evidence"><b>63</b><span>通过质量门的训练 branch states，来自 22 个 episodes</span></div>
-        <div class="evidence"><b>−0.442 mm</b><span>full − action-only held-out endpoint EPE，95% CI 为 [−0.750, −0.112] mm</span></div>
-        <div class="evidence"><b>−0.078</b><span>intervention cosine 差值，CI 跨 0；当前完整 gate 失败</span></div>
+        <div class="evidence"><b>71</b><span>待按新流程重导的旧训练与开发分叉；旧文件不覆盖</span></div>
+        <div class="evidence"><b>26 / 54</b><span>9 个固定抽样分叉中，位置偏差超过 0.5 毫米的非专家候选</span></div>
+        <div class="evidence"><b>35 / 56</b><span>单分叉中新旧接触数量不同的候选动作与时间步组合</span></div>
       </div>
     </section>
 
     <section class="shell">
       <div class="section-head">
         <div class="section-no">C1 · 路线关系</div>
-        <div><h2 class="section-title">原始构想保留什么，调整什么</h2><p class="section-copy">总问题没有改变：3D 必须帮助动作，而不能只改变内部特征。改变的是达到这一目标的中间机制。</p></div>
+        <div><h2 class="section-title">保留最终目标，先修正验证顺序</h2><p class="section-copy">“三维先验”就是物体的形状、三维位置、朝向，以及它与夹爪的相对关系。最终要证明这些信息能改善动作，而不只是让模型内部特征发生变化。</p></div>
       </div>
       <div class="compare-grid">
         <article class="compare-card">
-          <div class="tag">原始 WAM-3D</div>
-          <h3>静态 3D → video hidden → action</h3>
-          <p>对象点云、位姿与空间 mask 被编码后注入 Cosmos/video representation，再由 Action DiT 间接读取。</p>
-          <ul><li>已证明 3D 能进入并改变 video hidden。</li><li>已证明 residual 可解码部分未来几何。</li><li>尚未证明 action 或闭环成功率提高。</li></ul>
+          <div class="tag">长期目标</div>
+          <h3>三维信息 → 视频表征 → 机器人动作</h3>
+          <p>WAM 是结合视频世界模型与动作生成的框架。物体三维信息先融入视频模型的内部表示，再由动作模块读取；不直接绕过视频模块送给动作头。</p>
+          <ul><li>早期实验显示视频表征可利用三维信息预测部分未来物体运动。</li><li>动作与闭环任务的稳定收益尚未证明。</li><li>这个长期目标没有因当前数据问题而取消。</li></ul>
         </article>
         <div class="compare-arrow" aria-hidden="true">→</div>
         <article class="compare-card">
-          <div class="tag">调整后的 WAM+3D</div>
-          <h3>候选动作 → 3D 后果 → 动作选择</h3>
-          <p>把候选动作展开为部署时可获得的机器人三维轨迹，显式预测场景轨迹，并用预测结果重排候选。</p>
-          <ul><li>3D 从附加条件变成物理后果预测变量。</li><li>同状态反事实分支直接监督动作差异。</li><li>通过后再把动态 3D tokens 接回 Action DiT。</li></ul>
+          <div class="tag">当前研究步骤</div>
+          <h3>可信数据 → 动作后果 → 三维增益</h3>
+          <p>先保证每个候选动作从独立、相同的初始状态执行；再测初始三维状态是否影响动作后果，最后比较正确三维与图像、原始动作等基线。</p>
+          <ul><li>目前完成了单分叉修复和 9 分叉旧数据抽查。</li><li>尚未完成 71 分叉重导或模型重新训练。</li><li>若三维确实改善动作判断，再接回 WAM 视频与动作链路。</li></ul>
         </article>
       </div>
-      <div class="boundary"><strong>研究边界：</strong>如果最终只保留外挂 reranker，项目将更准确地称为“3D causal verifier for WAM”；如果 gate 通过后把动态 3D prior 接回 Action DiT/shared latent，则仍是原 WAM+3D 构想的因果化升级。</div>
+      <div class="boundary"><strong>研究边界：</strong>当前的候选动作与物体后果分析是诊断工具，不是已经完成的动作选择系统。只预测物体轨迹更准确，也不能直接宣称机器人任务成功率提高。</div>
     </section>
 
     <section class="shell" id="concept-architecture">
       <div class="section-head">
         <div class="section-no">C2 · 总体架构</div>
-        <div><h2 class="section-title">先生成候选，再预测物理后果，最后选择动作</h2><p class="section-copy">第一版保持模块化：不重训 Cosmos，不立刻改 Action DiT，用最小成本回答动态 3D 是否真的具有决策价值。</p></div>
+        <div><h2 class="section-title">从可靠数据到动作验证的完整顺序</h2><p class="section-copy">每一步回答一个不同问题；前一步不可靠，就不能把后一步的负结果归咎于三维方法。</p></div>
       </div>
       <div class="architecture" aria-label="当前 WAM+3D 技术构想">
-        <article class="arch-node"><b>01 · OBSERVE</b><strong>当前 RGB-D / 3D scene</strong><span>对象或场景点、世界坐标、语言目标与机器人当前状态。</span></article>
-        <article class="arch-node"><b>02 · PROPOSE</b><strong>DiT4DiT 生成 K 个动作片段</strong><span>保留现有 WAM 的动作先验与生成能力，不从头训练大模型。</span></article>
-        <article class="arch-node focus"><b>03 · REALIZE</b><strong>Nominal robot point flow</strong><span>只由当前状态、候选命令、控制器和运动学得到；不读取接触后的未来状态。</span></article>
-        <article class="arch-node focus"><b>04 · PREDICT</b><strong>轻量 3D causal dynamics</strong><span>输入当前三维和候选机器人轨迹，预测完整物体/场景 point trajectories。</span></article>
-        <article class="arch-node"><b>05 · SCORE</b><strong>目标与物理可行性评分</strong><span>依据任务进展、接触、碰撞、终点、不确定性对候选排序。</span></article>
-        <article class="arch-node"><b>06 · EXECUTE</b><strong>选择动作并闭环执行</strong><span>执行 top-1 chunk；最终以 LIBERO success rate 判断是否真正有用。</span></article>
+        <article class="arch-node focus"><b>01 · 已验证方法</b><strong>每个候选独立重放</strong><span>重新启动仿真器与控制器，再恢复相同初始状态，排除上一个动作留下的内部影响。</span></article>
+        <article class="arch-node focus"><b>02 · 下一项</b><strong>重导并验收 71 个分叉</strong><span>重算物体轨迹、夹爪轨迹与接触标签；保留旧文件作差异审计。</span></article>
+        <article class="arch-node"><b>03 · 数据检验</b><strong>同动作、改变初始物体位置</strong><span>在物理合理的仿真状态中，只移动目标物体；与零运动命令作对照。</span></article>
+        <article class="arch-node"><b>04 · 模型检验</b><strong>比较三维的额外价值</strong><span>对比只用动作、图像加动作、正确三维加动作、错配三维加动作。</span></article>
+        <article class="arch-node"><b>05 · 主线集成</b><strong>接回 WAM 视频与动作模块</strong><span>只有三维增益稳定出现，才检查视频内部表示是否真正把信息传给动作生成。</span></article>
+        <article class="arch-node"><b>06 · 最终评价</b><strong>机器人闭环完成任务</strong><span>让机器人连续观察、执行、再观察，以任务成功率而非单一预测误差作最终判断。</span></article>
       </div>
       <div class="plain-flow">
-        <strong>关键接口</strong>
-        <p><code>F̂ᵢ = Dynamics(Sₜ, Aᵢⁿᵒᵐⁱⁿᵃˡ)</code>：对每个候选独立预测场景轨迹，因此训练时可以使用 expert/candidate 配对，推理时不需要知道 expert。</p>
-        <p><strong>禁止输入：</strong>执行候选后实测得到的未来 EEF trajectory。它只作为 realized-flow oracle，用来测量信息泄漏和性能上限。</p>
+        <strong>先把两个容易混淆的问题拆开</strong>
+        <p>“换动作，物体会不会变化”比较的是同一初始状态下的不同动作；“三维几何有没有额外价值”还必须比较相同动作在不同初始几何下的后果，并让正确三维模型胜过只看图像与动作的强基线。</p>
+        <p><strong>禁止未来信息泄漏：</strong>执行动作以后才测到的夹爪和物体轨迹，只能做训练标签或分析；正式预测时不能把这些未来真值当输入。</p>
       </div>
     </section>
 
     <section class="shell">
       <div class="section-head">
-        <div class="section-no">C3 · 数据接口</div>
-        <div><h2 class="section-title">Schema v3：统一世界坐标与物理时间</h2><p class="section-copy">动作和场景变化都表示成有点身份、有时间戳的三维轨迹；当前阶段先聚焦夹爪与任务对象，避免静态背景稀释信号。</p></div>
+        <div class="section-no">C3 · 数据说明</div>
+        <div><h2 class="section-title">模型在执行前能看到什么，不能看到什么</h2><p class="section-copy">“候选动作”是一段准备让机器人执行的控制命令；“标签”是仿真执行后得到的真实后果。两者必须严格分开，避免模型偷看未来。</p></div>
       </div>
       <table class="field-table">
-        <thead><tr><th>字段</th><th>来源与形状</th><th>用途与限制</th></tr></thead>
+        <thead><tr><th>数据</th><th>含义</th><th>可否作为预测输入</th></tr></thead>
         <tbody>
-          <tr><td><code>scene_points_world</code></td><td>当前对象/场景点，[N, 3]</td><td>模型可见的当前三维状态；必须使用统一米制世界坐标。</td></tr>
-          <tr><td><code>raw_action_chunk</code></td><td>DiT4DiT 或人工扰动候选，[H, 7]</td><td>保留原始控制命令，作为 action-only 基线。</td></tr>
-          <tr><td><code>nominal_robot_flow</code></td><td>当前 robot state + controller/kinematics，[M, H, 3]</td><td>正式动作条件；部署时必须可以在执行前获得。</td></tr>
-          <tr><td><code>realized_robot_flow</code></td><td>仿真执行后实测，[M, H, 3]</td><td>仅作为 oracle/leakage audit，不进入正式模型。</td></tr>
-          <tr><td><code>scene_point_flow</code></td><td>counterfactual rollout 标签，[N, H, 3]</td><td>预测目标；包含完整轨迹，不只最终 SE(3)。</td></tr>
-          <tr><td><code>timestamps_sec</code></td><td>物理时间，[H]</td><td>处理 frame rate、no-op 删除和不均匀采样。</td></tr>
-          <tr><td><code>moving/contact masks</code></td><td>仿真真值或几何阈值</td><td>突出接触与运动点，同时约束静态区域不要漂移。</td></tr>
+          <tr><td>当前物体三维状态</td><td>形状点、位置、朝向，以及相对夹爪的位置；从执行前的仿真状态取得。</td><td>可以，但未来时刻的物体位置不可以。</td></tr>
+          <tr><td>原始候选动作</td><td>连续数步的平移、旋转和夹爪开合命令；也是“只用动作”对照模型的输入。</td><td>可以。</td></tr>
+          <tr><td>当前图像与任务语言</td><td>摄像机看到的场景和任务要求；用于与三维模型公平比较。</td><td>可以。</td></tr>
+          <tr><td>执行后的物体轨迹</td><td>动作真正执行后，物体每个时刻移动到哪里；是检验预测的答案。</td><td>不可以；只作标签或评估。</td></tr>
+          <tr><td>执行后的夹爪轨迹与接触点</td><td>仿真器事后测到的真实机器人运动和碰到物体的位置。</td><td>不可以；不能让正式模型提前看答案。</td></tr>
         </tbody>
       </table>
-      <div class="boundary"><strong>候选来源：</strong>诊断阶段继续使用 zero、reverse、translation、yaw 等受控扰动；面向真实决策的阶段必须加入 DiT4DiT 实际采样候选，否则无法证明对原 WAM 的真实动作分布有效。</div>
+      <div class="boundary"><strong>数据版本说明：</strong>旧候选轨迹暂保留用于对照，但不直接作为新模型结论的可信依据。新导出文件会记录“每个候选是否独立重置”；接触标签必须按同样方式重放。当前候选多为人为扰动，最终还需检查模型实际生成的动作。</div>
     </section>
 
     <section class="shell" id="concept-training">
       <div class="section-head">
-        <div class="section-no">C4 · 训练目标</div>
-        <div><h2 class="section-title">绝对轨迹是辅助，动作造成的差异才是主监督</h2><p class="section-copy">核心设计是同一个初始状态下比较多个动作，阻止模型只根据场景猜测平均终点。</p></div>
+        <div class="section-no">C4 · 验证问题</div>
+        <div><h2 class="section-title">下一轮实验分别要回答四个问题</h2><p class="section-copy">先确保答案本身可信，再比较模型；不因为一个误差数字变小，就直接说机器人会做得更好。</p></div>
       </div>
       <div class="formula-grid">
-        <article class="formula-card"><h3>完整轨迹损失</h3><code>L_traj = Huber(F̂ᵢ, Fᵢ)</code><p>监督所有物理时刻的 point flow；分别统计 Moving ADE、Moving FDE 与 Static ADE。</p></article>
-        <article class="formula-card"><h3>反事实差分损失 · 核心</h3><code>L_pair = Huber((F̂ᵢ−F̂ⱼ), (Fᵢ−Fⱼ))</code><p>同状态 candidate-vs-expert 或 candidate-vs-candidate 配对，直接学习“换动作会改变什么”。</p></article>
-        <article class="formula-card"><h3>方向与幅度</h3><code>L_effect = L_cos + λ · L_magnitude</code><p>只对真实 effect 足够大的动态分支计算方向，避免静止样本让 cosine 失真。</p></article>
-        <article class="formula-card"><h3>物理正则</h3><code>L_phys = L_static + L_contact + L_uncertainty</code><p>限制静态漂移，强化接触阶段，并显式输出预测不确定性供 reranker 使用。</p></article>
+        <article class="formula-card"><h3>① 新标签能否独立复现？</h3><p>每个候选动作前完整重置；再次单独执行相同命令，检查物体位置、朝向、夹爪轨迹与接触是否一致。不一致的样本不得进入模型比较。</p></article>
+        <article class="formula-card"><h3>② 换动作是否改变物体？</h3><p>在同一初始状态比较专家动作和受控扰动，报告物体运动差的大小与方向。这里的“反事实”就是问：如果当时执行另一动作，会发生什么。</p></article>
+        <article class="formula-card"><h3>③ 初始三维状态是否重要？</h3><p>保持动作相同，只在仿真中合理移动目标物体；比较物体的后续运动，并减去零运动命令下的被动变化。这个对照尚在小规模可行性阶段。</p></article>
+        <article class="formula-card"><h3>④ 正确三维能否改善判断？</h3><p>在新数据和相同训练预算下比较原始动作、图像加动作、正确三维加动作、错配三维加动作。主要看动作造成的后果和候选选择，不只看平均轨迹误差。</p></article>
       </div>
       <div class="plain-flow">
-        <strong>总目标</strong>
-        <p><code>L = L_pair + λ₁L_traj + λ₂L_effect + λ₃L_phys</code></p>
-        <p>第一轮仍使用小模型和现有 63 个训练 states 做机制验证，不扩展成大规模视频生成器。只有因果 gate 出现可靠正信号后才增加数据和模型容量。</p>
+        <strong>为何不直接扩大训练？</strong>
+        <p>旧样本里的部分轨迹偏差与此前模型改进的毫米级幅度相近；接触标签也明显变化。在修正数据上复核之前，继续调模型会把数据误差当成结构问题。</p>
       </div>
     </section>
 
     <section class="shell" id="concept-gates">
       <div class="section-head">
-        <div class="section-no">C5 · 评估协议</div>
-        <div><h2 class="section-title">四级 gate，逐级决定是否继续投入</h2><p class="section-copy">现有 9 个 validation states 已用于两轮判断，今后只能作为 dev；最终结论必须来自从未使用的新 episodes。</p></div>
+        <div class="section-no">C5 · 验收顺序</div>
+        <div><h2 class="section-title">四道门槛，逐级确认</h2><p class="section-copy">旧的三轮保留测试已用于模型选择，不能针对结果反复调参后再宣称“通过”。修正方法需要新的、按轨迹划分的独立测试。</p></div>
       </div>
       <div class="gate-ladder">
-        <article class="gate-step"><div class="gate-id">G0</div><div><h3>无泄漏动作接口</h3><p>raw action、nominal flow、realized-flow oracle 三组对照；正式模型只允许使用部署前可得信息。</p></div><span class="gate-state">NEXT</span></article>
-        <article class="gate-step"><div class="gate-id">G1</div><div><h3>Held-out causal dynamics</h3><p>full 必须在新 locked test 上同时改善 Moving ADE/FDE 和 intervention cosine，paired bootstrap CI 支持提升。</p></div><span class="gate-state">PENDING</span></article>
-        <article class="gate-step"><div class="gate-id">G2</div><div><h3>真实候选排序</h3><p>对 DiT4DiT samples 的排序与真实 rollout outcome 一致；top-1 regret 和 pairwise ranking accuracy 优于 action-only scorer。</p></div><span class="gate-state">PENDING</span></article>
-        <article class="gate-step"><div class="gate-id">G3</div><div><h3>LIBERO 闭环收益</h3><p>相同 candidate budget 下，3D reranker 的 success rate 稳定高于原始 DiT4DiT 与非因果 3D 基线。</p></div><span class="gate-state">PENDING</span></article>
+        <article class="gate-step"><div class="gate-id">一</div><div><h3>数据质量</h3><p>71 个旧训练/开发分叉重导到新目录，逐候选独立重放；物体、夹爪与接触标签须通过预先规定的误差检查。当前只完成了一个分叉的修复验证。</p></div><span class="gate-state">进行中</span></article>
+        <article class="gate-step"><div class="gate-id">二</div><div><h3>三维作用</h3><p>在真实可执行的动作与物体初始位置变化下，判断几何变化带来的动作后果是否超过重放误差和被动漂移。</p></div><span class="gate-state">待验证</span></article>
+        <article class="gate-step"><div class="gate-id">三</div><div><h3>模型额外收益</h3><p>在未用于调参的新轨迹上，正确三维模型稳定胜过只用动作、图像加动作及错配三维的对照，尤其要改善候选动作的后果判断。</p></div><span class="gate-state">待验证</span></article>
+        <article class="gate-step"><div class="gate-id">四</div><div><h3>动作与闭环收益</h3><p>三维先进入视频表征，再检验动作生成是否真正利用；最终比较机器人连续执行任务的成功率。</p></div><span class="gate-state">待验证</span></article>
       </div>
     </section>
 
     <section class="shell">
       <div class="section-head">
         <div class="section-no">C6 · 贡献定位</div>
-        <div><h2 class="section-title">贡献不在“用了 3D”，而在 3D 如何改变决策</h2></div>
+        <div><h2 class="section-title">什么结果才能成为项目贡献</h2></div>
       </div>
       <table class="matrix">
-        <thead><tr><th>可能贡献</th><th>与近期工作的区别</th><th>成立条件</th></tr></thead>
+        <thead><tr><th>可能的贡献</th><th>目前做到哪里</th><th>还需要什么证据</th></tr></thead>
         <tbody>
-          <tr><td>已有 WAM 的外挂式 3D causal prior</td><td>不从头训练 1B 级 3D-native WAM；保留 DiT4DiT，低成本校验候选。</td><td>显著提高 ranking 或闭环成功率。</td></tr>
-          <tr><td>同状态 paired intervention supervision</td><td>不只拟合单条 rollout；直接约束候选动作后果之差。</td><td>优于相同模型的 absolute-only loss。</td></tr>
-          <tr><td>Nominal / realized action-flow 分离</td><td>明确排除未来机器人状态泄漏，并给出 oracle 上限。</td><td>nominal-flow 模型在 locked test 上仍有效。</td></tr>
-          <tr><td>Prediction → ranking → execution 证据链</td><td>不以 auxiliary loss 或视觉质量代替动作有效性。</td><td>完整通过 G1、G2、G3。</td></tr>
+          <tr><td>可靠的动作—物体后果数据</td><td>找到旧数据的顺序依赖，修正方式已在单分叉验证；9 个固定样本完成质量审计。</td><td>完成 71 分叉重导与独立验收，公开清楚的失败与剔除规则。</td></tr>
+          <tr><td>可部署三维信息的额外价值</td><td>目前只说明动作会影响物体，尚未证明正确三维比图像加动作更有用。</td><td>在新轨迹上稳定胜过强基线和错配三维，并排除未来信息泄漏。</td></tr>
+          <tr><td>视频世界模型与动作的有效耦合</td><td>早期已验证三维能影响视频表征，动作收益仍无稳定证据。</td><td>证明三维信息经视频表征进入动作模块，而非走捷径，并改善动作选择。</td></tr>
+          <tr><td>机器人任务收益</td><td>尚未完成新路线的闭环验证。</td><td>在相同动作生成预算下，机器人连续执行任务的成功率稳定提高。</td></tr>
         </tbody>
       </table>
-      <div class="boundary"><strong>当前状态：</strong>这些是已经固定的贡献假设，不是已经成立的论文结论。如果只改善 EPE 而没有改善 intervention、ranking 和闭环成功率，就不能宣称方法贡献成立。</div>
+      <div class="boundary"><strong>当前定位：</strong>修正数据质量是必要基础，不应单独包装成“三维方法已成功”。如果最终只有预测误差改善、没有更好的动作或任务结果，应如实称为数据或机制研究。</div>
     </section>
 
     <section class="shell" id="concept-plan">
       <div class="section-head">
         <div class="section-no">C7 · 实施顺序</div>
-        <div><h2 class="section-title">按风险从低到高推进</h2><p class="section-copy">每一步都产生独立结论；前一 gate 不通过，不进入更昂贵的主干集成。</p></div>
+        <div><h2 class="section-title">下一步按风险从低到高推进</h2><p class="section-copy">先完成数据修复与复核，再决定是否投入新的模型训练和闭环评估。</p></div>
       </div>
       <div class="next-list">
-        <div class="next-item"><div><strong>冻结当前 absolute-probe 结果</strong><span>63 train states / 9 dev branches 的结果只作为路线转换依据，不继续调参到通过。</span></div><em>已完成</em></div>
-        <div class="next-item"><div><strong>实现 nominal robot-flow exporter</strong><span>从当前 robot state 与 candidate commands 生成无接触结果泄漏的夹爪/机器人关键点轨迹。</span></div><em>立即实施</em></div>
-        <div class="next-item"><div><strong>执行 leakage audit</strong><span>比较 raw action、nominal flow、realized-flow oracle，量化当前输入可能获得了多少未来信息。</span></div><em>G0</em></div>
-        <div class="next-item"><div><strong>训练 paired trajectory probe</strong><span>完整时序 scene flow + paired effect 主损失；先在现有数据上 smoke，再决定是否扩大 counterfactual branches。</span></div><em>G1 dev</em></div>
-        <div class="next-item"><div><strong>建立新 locked test</strong><span>从未参与模型选择的 episodes 固定测试集；锁定后不再根据结果修改划分。</span></div><em>G1 test</em></div>
-        <div class="next-item"><div><strong>加入真实 DiT4DiT candidates</strong><span>从受控扰动过渡到策略实际会提出的动作，训练 goal-conditioned scorer 并测排序 regret。</span></div><em>G2</em></div>
-        <div class="next-item"><div><strong>闭环验证，再决定主干融合</strong><span>只有 reranker 提升 LIBERO success rate，才将 future-3D tokens 接入 Action DiT/shared latent。</span></div><em>G3 → 集成</em></div>
+        <div class="next-item"><div><strong>固定 71 个旧训练/开发分叉清单</strong><span>不按旧结果挑样本；旧版数据完整保留，新版写入独立目录。</span></div><em>已明确</em></div>
+        <div class="next-item"><div><strong>逐候选完整重置并重导</strong><span>每个动作都从相同物理状态和控制器状态开始，重新生成物体与夹爪轨迹。</span></div><em>下一项</em></div>
+        <div class="next-item"><div><strong>逐条重放与接触标签验收</strong><span>独立复现位置、旋转和接触；记录每条失败原因，不用误差较大的样本混入模型训练。</span></div><em>数据质量</em></div>
+        <div class="next-item"><div><strong>重算旧结论并做模型对照</strong><span>重新统计有效物体干预；在相同训练预算下比较只用动作、图像加动作、正确三维、错配三维。</span></div><em>方法检验</em></div>
+        <div class="next-item"><div><strong>补充物理一致的几何干预</strong><span>同一动作配不同初始物体位置，并加入零运动对照；先检查是否真的存在超出被动漂移的几何效应。</span></div><em>新数据</em></div>
+        <div class="next-item"><div><strong>再检验视频—动作—任务链路</strong><span>只有三维的增量稳定存在，才接回 WAM 视频与动作模块，并以机器人任务成功率作最终检验。</span></div><em>长期目标</em></div>
       </div>
     </section>
 
@@ -909,19 +919,19 @@
         <div><h2 class="section-title">近期工作带来的具体设计约束</h2><p class="section-copy">借用共同原则，不直接照搬规模和结构。</p></div>
       </div>
       <div class="reference-grid">
-        <article class="reference-card"><h3>PointWorld</h3><p>状态与动作统一为 3D point flows，预测 action-conditioned scene dynamics；启发统一三维接口。</p><a href="https://arxiv.org/abs/2601.03782">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>Robot-Factored WM</h3><p>动作命令先经控制器与运动学形成部署可得 nominal trajectory，避免 future-state leakage。</p><a href="https://arxiv.org/abs/2607.22535">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>UNITAS</h3><p>action flow、scene flow、世界坐标与 physical time 的统一表达；启发完整轨迹监督和闭环一致性。</p><a href="https://arxiv.org/abs/2610.12099">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>PointWAM</h3><p>把 actor 与 scene 分解后在共享时空坐标中联合预测；启发机器人轨迹与场景轨迹显式解耦。</p><a href="https://arxiv.org/abs/2610.02840">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>WSA</h3><p>联合 action-conditioned 3D world model 与 3D inverse dynamics；启发最终必须闭合世界—动作回路。</p><a href="https://arxiv.org/abs/2607.03941">查看论文 ↗</a></article>
-        <article class="reference-card"><h3>RoboWM-Bench</h3><p>预测质量不能代替可执行性；启发最终以 embodied execution 和任务完成判断世界模型价值。</p><a href="https://arxiv.org/abs/2604.19092">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>PointWorld</h3><p>把机器人动作和物体运动都表示为三维点的移动，启发我们在同一空间里比较动作及其后果。</p><a href="https://arxiv.org/abs/2601.03782">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>Robot-Factored WM</h3><p>先由当前状态与控制命令估计机器人将怎样移动，而不是把执行后的真实轨迹提前交给模型。</p><a href="https://arxiv.org/abs/2607.22535">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>UNITAS</h3><p>用统一的三维坐标和时间描述动作与场景变化，启发我们检查整段运动，而非只看终点。</p><a href="https://arxiv.org/abs/2610.12099">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>PointWAM</h3><p>在同一时空坐标里描述机器人与场景的变化，启发我们分清“机器人做了什么”和“物体随后怎样动”。</p><a href="https://arxiv.org/abs/2610.02840">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>WSA</h3><p>把三维世界变化与动作学习相互连接，提醒我们不能只训练一个与最终动作无关的预测分支。</p><a href="https://arxiv.org/abs/2607.03941">查看论文 ↗</a></article>
+        <article class="reference-card"><h3>RoboWM-Bench</h3><p>预测看起来准确，不代表机器人能完成任务；最终仍需检查连续执行时的结果。</p><a href="https://arxiv.org/abs/2604.19092">查看论文 ↗</a></article>
       </div>
     </section>
 
     <section class="shell">
       <div class="stop-box">
-        <h3>“停止路线”到底停止什么</h3>
-        <p><strong>停止：</strong>继续把当前逐样本 absolute endpoint checkpoint 接入 Cosmos/Action DiT，或通过增加训练步数、调权重把它包装成成功。<br><strong>不停止：</strong>WAM+3D 总项目、counterfactual rollout 数据、三维轨迹监督和让 3D 真正帮助动作的目标。若 nominal + paired intervention 仍不能通过 G1，才停止显式 point-flow forward model 这一分支，转向 joint world-action latent 或 3D contact/affordance scorer。</p>
+        <h3>当前暂缓什么，仍继续什么</h3>
+        <p><strong>暂缓：</strong>用可能受执行顺序影响的旧轨迹继续训练，或把旧模型的毫米级优劣当作已验证贡献；也不在用过的保留测试上反复调参。<br><strong>继续：</strong>修正候选数据、验证物体初始三维状态与动作后果的关系，比较强基线，并在有充分证据后恢复 WAM 的视频到动作主线。</p>
       </div>
     </section>
 
@@ -932,17 +942,18 @@
       </div>
       <div class="files">
         <code>utils/export_libero_counterfactual_rollouts.py</code>
-        <code>utils/train_wam3d_causal_probe.py</code>
-        <code>utils/plan_wam3d_causal_scaleup.py</code>
-        <code>utils/filter_wam3d_causal_rollouts.py</code>
+        <code>utils/audit_wam3d_independent_replay.py</code>
+        <code>utils/batch_audit_wam3d_independent_replay.py</code>
+        <code>utils/export_wam3d_contact_sites.py</code>
+        <code>artifacts/results/wam3d_independent_replay_stratified_seed42/summary.json</code>
+        <code>docs/wam3d_next_phase_2026-10-28.md</code>
         <code>docs/wam3d_progress.md</code>
-        <code>artifacts/results/wam3d_causal_scaleup_probe_400ep_3seed/report.json</code>
       </div>
     </section>
   </main>
 
   <footer class="page-footer">
-    <div class="shell">WAM+3D · Internal research progress &amp; current concept · Updated 2026-10-26 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">参考技术构思</a></div>
+    <div class="shell">WAM+3D · 研究进展与当前技术路线 · 更新于 2026-10-28 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">参考技术构思</a></div>
   </footer>
   <script>
     (() => {
