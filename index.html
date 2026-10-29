@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>WAM+3D · 阶段性研究进展</title>
+  <title>WAM+3D · 新路线与文献研读</title>
   <style>
     :root {
       --bg: #07100f;
@@ -318,6 +318,16 @@
     .stop-box { padding: 27px; border: 1px solid rgba(255,198,109,.28); border-radius: 20px; background: linear-gradient(145deg, rgba(255,198,109,.08), rgba(13,25,23,.84)); }
     .stop-box h3 { margin: 0 0 10px; font-size: 23px; }
     .stop-box p { margin: 0; color: #d1c5a8; }
+    .paper-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .paper-card { padding: 26px; border: 1px solid var(--line); border-radius: 19px; background: var(--surface); }
+    .paper-card h3 { margin: 7px 0 15px; font-size: 23px; line-height: 1.35; }
+    .paper-card p { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+    .paper-card p strong { color: var(--text); }
+    .paper-card a { display: inline-block; margin-top: 16px; font-size: 13px; }
+    .paper-card .tag { color: var(--mint); }
+    .legacy-plan { margin: 40px auto 80px; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: rgba(255,255,255,.02); }
+    .legacy-plan > summary { cursor: pointer; color: var(--amber); font-weight: 700; }
+    .legacy-plan > .boundary { margin-bottom: 5px; }
 
     @media (max-width: 900px) {
       nav { display: none; }
@@ -332,7 +342,7 @@
       .section-head { grid-template-columns: 1fr; gap: 7px; }
       .architecture { grid-template-columns: 1fr 1fr; }
       .arch-node:not(:last-child)::after { display: none; }
-      .reference-grid { grid-template-columns: 1fr 1fr; }
+      .reference-grid, .paper-grid { grid-template-columns: 1fr 1fr; }
       .reason-chain { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
@@ -350,7 +360,7 @@
       .brand > span:last-child { display: none; }
       .top-actions { gap: 6px; }
       .view-switch button { padding: 7px 9px; }
-      .compare-grid, .formula-grid, .architecture, .evidence-strip, .reference-grid { grid-template-columns: 1fr; }
+      .compare-grid, .formula-grid, .architecture, .evidence-strip, .reference-grid, .paper-grid { grid-template-columns: 1fr; }
       .compare-arrow { transform: rotate(90deg); min-height: 32px; }
       .gate-step { grid-template-columns: 54px 1fr; }
       .gate-state { grid-column: 2; justify-self: start; }
@@ -370,29 +380,30 @@
   <header class="topbar">
     <div class="shell topbar-inner">
       <div class="brand"><span class="brand-mark">3D</span><span>WAM+3D 研究进展</span></div>
-      <nav aria-label="阶段进展导航" data-nav="progress">
+      <nav aria-label="历史实验导航" data-nav="progress" hidden>
         <a href="#overview">总览</a><a href="#current-check">最新进展</a><a href="#route">路线</a><a href="#work">工作量</a>
         <a href="#experiments">实验</a><a href="#issues">问题</a><a href="#next">下一步</a>
       </nav>
-      <nav aria-label="当前构想导航" data-nav="concept" hidden>
-        <a href="#concept-overview">判断</a><a href="#concept-comparison">新旧对照</a><a href="#concept-architecture">路线</a>
-        <a href="#concept-training">验证问题</a><a href="#concept-gates">验收</a><a href="#concept-plan">实施</a><a href="#concept-related-work">相关工作</a>
+      <nav aria-label="当前路线导航" data-nav="concept">
+        <a href="#concept-overview">判断</a><a href="#concept-comparison">路线变化</a><a href="#concept-papers">逐篇研读</a>
+        <a href="#concept-architecture">3D架构</a><a href="#concept-gates">实验验证</a>
       </nav>
       <div class="top-actions">
         <div class="view-switch" role="tablist" aria-label="页面视图">
-          <button class="active" type="button" role="tab" aria-selected="true" data-view-target="progress">阶段进展</button>
-          <button type="button" role="tab" aria-selected="false" data-view-target="concept">当前构想</button>
+          <button type="button" role="tab" aria-selected="false" data-view-target="progress">历史实验</button>
+          <button class="active" type="button" role="tab" aria-selected="true" data-view-target="concept">当前路线</button>
         </div>
         <button class="print-btn" onclick="window.print()">打印 / PDF</button>
       </div>
     </div>
   </header>
 
-  <main id="progress-view" class="view-panel" data-view="progress">
+  <main id="progress-view" class="view-panel" data-view="progress" hidden>
     <section class="hero shell" id="overview">
-      <div class="eyebrow">研究进展 · 2026-10-28</div>
+      <div class="eyebrow">历史实验快照 · 截至 2026-10-28</div>
       <h1>让对象级三维先验<br>真正进入 WAM 的行动链路</h1>
-      <p class="hero-lead">研究物体的形状、位置和运动怎样帮助机器人选择动作。当前重点是修正仿真数据的候选动作重放方式，再判断三维信息是否真的带来决策增益。</p>
+      <p class="hero-lead">本页记录此前“静态 3D 特征注入视频隐藏层”的实现与失败诊断，不代表 2026-10-30 起的执行路线。请切换“当前路线”看文献驱动的新方案。</p>
+      <div class="boundary"><strong>历史内容提示：</strong>下文“当前”“下一步”等表述均为 2026-10-28 当时的记录。71 个候选分叉已重新导出；全量独立复现和接触标签验收尚未完成。新的研究方向不再要求 3D 先通过视频隐藏层才进入动作。</div>
       <div class="hero-meta">
         <span class="pill live">当前阶段：反事实数据质量核查</span><span class="pill">主基座：DiT4DiT</span>
         <span class="pill">三维编码器：冻结的 Point-MAE</span><span class="pill">数据：LIBERO-object 仿真真值三维数据</span>
@@ -438,7 +449,7 @@
     <section class="shell" id="route">
       <div class="section-head">
         <div class="section-no">01 · 技术路线</div>
-        <div><h2 class="section-title">长期目标路线</h2><p class="section-copy">最终仍希望三维信息先改变视频模型的内部表征，再帮助动作模型生成动作；这条完整链路尚未验证通过。当前优先完成可信动作后果数据。</p></div>
+        <div><h2 class="section-title">此前路线（现已停止）</h2><p class="section-copy">下面是旧方案的实际技术链路，保留以说明已投入的工作和为何需要改变方向；它不再是本项目的必经路径。</p></div>
       </div>
       <div class="pipeline" aria-label="WAM+3D 技术链路">
         <div class="pipe-node"><i>第一步 · 输入</i><strong>仿真器提供的对象级三维真值</strong><span>物体局部点云、4×4 位姿、对象编号、图像边界框、有效标记、夹爪位姿</span></div>
@@ -774,39 +785,124 @@
     </section>
   </main>
 
-  <main id="concept-view" class="view-panel" data-view="concept" hidden>
+  <main id="concept-view" class="view-panel" data-view="concept">
     <section class="concept-hero shell" id="concept-overview">
-      <div class="eyebrow">当前技术路线 · 2026-10-28</div>
-      <h1>先修正动作后果数据，<br><em>再验证三维能否帮助决策</em></h1>
-      <p class="hero-lead">总目标没有变：让物体三维信息进入 WAM 的视频表征，最终帮助机器人选对动作。近期实验发现旧候选动作数据存在重放顺序影响，因此先修正数据、重验模型；不把一次辅助目标失败等同于整个三维方向失败。</p>
+      <div class="eyebrow">文献研读后的新研究路线 · 2026-10-30</div>
+      <h1>不再只给视频加 3D token。<br><em>让三维状态参与预测和选动作。</em></h1>
+      <p class="hero-lead">核心假设：机器人真正需要的不是“视频特征里有三维”，而是“当前几何与候选动作一起决定接触和物体运动”；世界模型要先能预测这种后果，才能帮助动作决策。下面把老师给的六项工作逐篇拆解，再明确哪些是我们的推断、哪些仍未验证。</p>
       <div class="hero-meta">
-        <span class="pill live">当前重点：候选轨迹独立重放</span>
-        <span class="pill">保持旧数据与新数据分开</span>
-        <span class="pill">下一问题：三维是否改变动作后果</span>
-        <span class="pill">最终目标：WAM 视频表征到动作</span>
+        <span class="pill live">新路线：状态—动作—三维后果—决策</span>
+        <span class="pill">视频是受状态约束的观察，不是唯一桥梁</span>
+        <span class="pill">强对照：直接 3D 动作策略</span>
+        <span class="pill">目前是研究方案，尚未取得新模型结果</span>
       </div>
 
       <div class="headline-grid">
         <article class="verdict concept-verdict">
           <div class="eyebrow">路线判断</div>
-          <h2>目前首先要排除数据问题，才能公平判断方法问题。</h2>
-          <p>旧数据从同一物理状态执行多个候选动作，但仅恢复物理状态，不足以清除控制器与夹爪缓存。修正方式已在一个分叉验证；9 个固定抽样分叉显示旧标签的偏差不容忽略。下一步重导 71 个旧训练/开发分叉，然后再比较三维模型和强基线。</p>
+          <h2>旧“静态注入”主线停止；3D 不停止。</h2>
+          <p>旧方案使部分未来位置预测变好，却没证明动作收益；更直接的动作/接触探针也未过严格对照。近期工作提示：要把三维做成可更新、可投影、与动作交互的空间状态，同时用闭环任务判断是否有用。这是新的研究假设，不是某篇论文已经替我们完成的成果。</p>
         </article>
         <div class="status-stack">
-          <div class="status-card good"><small>修正流程</small><strong>单分叉 7 个候选可独立重放</strong></div>
-          <div class="status-card warn"><small>旧数据</small><strong>存在候选轨迹与接触标签偏差</strong></div>
-          <div class="status-card"><small>当前结论</small><strong>三维的动作收益尚未证明</strong></div>
+          <div class="status-card good"><small>数据处理</small><strong>71 / 71 分叉已重导，导出无报错</strong></div>
+          <div class="status-card warn"><small>未完成</small><strong>全量独立重放、接触标签复核</strong></div>
+          <div class="status-card"><small>科学结论</small><strong>新路线的动作与闭环收益尚未证明</strong></div>
         </div>
       </div>
 
       <div class="evidence-strip">
-        <div class="evidence"><b>71</b><span>待按新流程重导的旧训练与开发分叉；旧文件不覆盖</span></div>
-        <div class="evidence"><b>26 / 54</b><span>9 个固定抽样分叉中，位置偏差超过 0.5 毫米的非专家候选</span></div>
-        <div class="evidence"><b>35 / 56</b><span>单分叉中新旧接触数量不同的候选动作与时间步组合</span></div>
+        <div class="evidence"><b>6 项</b><span>逐篇核对方法、证据、局限；其中 SolarWM 是技术文章，不是论文</span></div>
+        <div class="evidence"><b>71 / 71</b><span>旧训练/开发候选分叉独立重置流程导出完成；不等于标签已全部验收</span></div>
+        <div class="evidence"><b>0</b><span>截至当前，新路线尚无闭环成功率提升证据，也没有可信的加 3D 前后对照视频</span></div>
       </div>
     </section>
 
     <section class="shell" id="concept-comparison">
+      <div class="section-head"><div class="section-no">01 · 路线变化</div><div><h2 class="section-title">到底推倒了什么，保留了什么</h2><p class="section-copy">最初参考的 WAM-3D 构思给了项目起点，但“编码当前物体 3D → 注入 Cosmos 隐藏层 → Action DiT”未给出可靠动作增益。新路线改变的是三维发挥作用的位置与验证方式，不是换个名字继续加 token。</p></div></div>
+      <div class="route-table-wrap"><table class="route-table" aria-label="旧路线与新研究假设对照"><thead><tr><th>问题</th><th>此前已做的路线</th><th>本次提出的路线（待验证）</th></tr></thead><tbody>
+        <tr><td>三维表示</td><td>单时刻仿真真值物体形状、位姿编码成 token。</td><td>从部署可得的当前 RGB-D/点云建立对象级三维状态：形状、位姿、夹爪相对几何及不确定性；仿真真值仅用于训练与上限对照。</td></tr>
+        <tr><td>三维在哪里起作用</td><td>先注入视频隐藏层，期待动作模块间接读到。</td><td>在候选动作条件下显式预测短时物体/夹爪运动与接触；预测的后果直接参与动作重排或修正。直接 3D 策略另作强基线。</td></tr>
+        <tr><td>WAM 视频的角色</td><td>主要信息通路；“视频特征变化”曾被用作中间成功信号。</td><td>从共享三维状态/后果投影出逐帧深度、语义区域或点运动，再约束/生成视频；视频要与预测的物理状态一致，但不能替代动作检验。</td></tr>
+        <tr><td>主要证据</td><td>未来物体平移、点轨迹探针和动作去噪误差；旋转、动作与接触未稳定通过。</td><td>几何干预下的后果预测、候选动作排序、闭环任务成功率及完整前后对照视频；必须胜过 RGB+动作和直接 3D 策略。</td></tr>
+      </tbody></table></div>
+      <div class="plain-flow"><strong>本次不是复现哪一篇？</strong><p>State World Models 和 Code World Model 说明“显式状态先决定后果，视频负责呈现”的系统分工；PointACT 说明三维若在动作专家的局部交互中发挥作用，可能比拼接特征更有效；其余工作分别提醒我们动作条件数据、时序、身份/物理一致性与推理时延。将这些原则改造成机器人操作中“从当前观测预测未知未来接触并辅助选动作”的问题，是我们的综合设计；能否形成论文贡献要靠严格实验，而不是靠组合概念。</p></div>
+      <div class="boundary"><strong>关键区别：</strong>游戏/规则世界通常能由代码给出下一状态；机器人真实接触不能预先由一段规则“算出答案”。因此我们不能把仿真器执行后的未来物体位姿喂给模型当条件，必须学习带不确定性的动作条件三维转移，并在执行后用新观测纠正。</div>
+    </section>
+
+    <section class="shell" id="concept-papers">
+      <div class="section-head"><div class="section-no">02 · 逐篇研读</div><div><h2 class="section-title">六项工作的真实做法与可迁移部分</h2><p class="section-copy">每项区分方法、论文/文章中的证据、我们可用的启发和不能照搬的边界。数字是各作者在各自任务上的报告，不能横向当作我们项目的预期收益。</p></div></div>
+      <div class="paper-grid">
+        <article class="paper-card"><div class="tag">01 · State World Models · 2026</div><h3>先更新“世界账本”，再生成画面</h3>
+          <p><strong>实际机制：</strong>把可编辑的语义状态、可执行规则和粗 3D 场景分开保存。每次交互先由规则决定事件及下一状态，再把状态写成视觉脚本和三维预览交给冻结的视频生成器；生成画面可经视觉模型反馈，但不能推翻规则。重点是把“事件是否发生”从像素生成中拿出来。</p>
+          <p><strong>实验证据：</strong>WorldState-Bench 构造同首帧、同动作、但隐藏状态不同的反事实对。对所测 MiniMax-H3 后端，PairFollow 从只给规则的 32%、明确指定结局的 64%，升至完整系统的 92%；更严格的 PairStrict 为 90%。这些是论文基准上的数字，不是物理操控成功率。</p>
+          <p><strong>对 WAM+3D：</strong>当前物体状态应独立、可更新；先判断抓取/碰撞后果，再让 WAM 的视频与该后果一致。可设计“画面近似、物体深度/接触状态不同”的配对试验，检验模型是否真的区分三维世界。</p>
+          <p><strong>不能照搬：</strong>它的隐藏状态与规则是预设的语义世界，不会自动解决机器人连续动力学。我们必须从当前感知估计状态，并从动作数据学习接触转移和误差范围。</p>
+          <a href="https://arxiv.org/html/2610.26811" target="_blank" rel="noopener noreferrer">论文原文与实验表 ↗</a></article>
+        <article class="paper-card"><div class="tag">02 · Infinite Worlds / LingBot-World-Infinity · 2026</div><h3>视频交互可以很长，但物理仍可能是空的</h3>
+          <p><strong>实际机制：</strong>从第一人称、游戏和合成视频收集时序数据，标注多轨道事件、相机控制及交互；用因果分块视频模型训练动作响应，再以少步蒸馏做实时交互。部署时还有“导演/执行”代理，借助视频追踪和交互工具维持场景体验。</p>
+          <p><strong>实验证据：</strong>论文展示长时、高清且实时的交互世界；作者同时明确指出：像素学到的世界没有显式几何或碰撞约束，物体仍可能穿透；离开上下文的对象身份也难长期记住。这正是视频看起来好、不等于可操控物理可靠的证据边界。</p>
+          <p><strong>对 WAM+3D：</strong>保留视频模型的外观与时序能力，但另外维护物体身份、米制几何和接触；每段生成后将当前状态对齐到新观测，避免视频漂移累积。针对搬运、抓取等动作，测“物体身份和接触是否连续”，不只测画质。</p>
+          <p><strong>不能照搬：</strong>其主要交互是游戏/场景操控，不是 LIBERO 机械臂精确抓取；实时帧率不能证明 3D 先验有效。这里的显式几何状态是我们的补充假设，并非该论文已经实现。</p>
+          <a href="https://arxiv.org/html/2607.07534" target="_blank" rel="noopener noreferrer">论文原文与局限 ↗</a></article>
+        <article class="paper-card"><div class="tag">03 · Code World Model · 2026</div><h3>“未来 3D 状态 → 逐帧空间代理 → 视频”</h3>
+          <p><strong>实际机制：</strong>编码代理用可执行代码维护/更新世界状态；轻量编译器把每一帧状态投影成低分辨率深度与语义编号图，视频模型在与 RGB 帧对齐的空间代理条件下生成高分辨率画面。代理里有对象粗形状、位置、遮挡和相机几何，不是只附加一枚全局 token。</p>
+          <p><strong>实验证据：</strong>论文用约 5.6 小时 GTA V 录像切出 9,420 段、5 秒训练片段，微调 MiniMax-H3 的视频生成；也展示由 KITTI-360 三维重建离线编译现实场景代理的可行性。主要评估视觉质量，不能据此声称代码代理能预测未知机器人接触。</p>
+          <p><strong>对 WAM+3D：</strong>可把<strong>我们预测的</strong>未来物体/夹爪三维状态投影为逐帧深度、对象掩码、可见点运动，作为 WAM 的空间条件；这比当前帧静态编码更明确地约束时空对齐与遮挡。视频分支应学习“状态如何被看见”，而不是替代动力学分支。</p>
+          <p><strong>不能照搬：</strong>游戏可调用代码得到未来状态；机器人测试时不能读取仿真器未来轨迹。先从当前状态与候选动作预测未来，再编译代理；训练标签可用仿真真值，但推理输入不得使用。</p>
+          <a href="https://arxiv.org/html/2608.25927" target="_blank" rel="noopener noreferrer">论文原文与代理表示 ↗</a></article>
+        <article class="paper-card"><div class="tag">04 · SolarWM H3 Realtime · 技术文章</div><h3>解决响应速度，不解决三维理解</h3>
+          <p><strong>实际机制：</strong>对 DiT 推理做模型编译、注意力后端选择、历史 K/V 拼接复用、CUDA Graph 重放，并用流式 VAE 缩短等待下一块潜变量的首帧延迟。它是工程部署优化，不是新的机器人三维动力学建模方法。</p>
+          <p><strong>文章报告：</strong>其配置下完整串行 DiT+VAE 稳态从 4.92 升到 24.38 FPS；一次动作响应的后端首帧就绪从约 6.90 秒缩至 0.58 秒。计时条件与网页端延迟不同，也不代表我们可直接获得同样速度。</p>
+          <p><strong>对 WAM+3D：</strong>如果短时后果预测与视频用于实时闭环，必须把端到端时延列为验收项：候选生成、三维预测、重排、视频渲染各自计时。先证明决策有效，再考虑缓存和编译；可让轻量 3D 分支负责快速决策，视频生成异步服务解释或可视化。</p>
+          <p><strong>不能照搬：</strong>编译、缓存和流式解码不会让错误的物体碰撞变正确；此文没有给出机械臂任务成功率或 3D 先验增益。</p>
+          <a href="https://solarx-team.github.io/SolarWM-H3-Realtime/zh.html" target="_blank" rel="noopener noreferrer">技术文章与计时表 ↗</a></article>
+        <article class="paper-card"><div class="tag">05 · LingBot-World · 2026</div><h3>动作条件需要时序对齐的数据与训练</h3>
+          <p><strong>实际机制：</strong>以视频生成底座起步，经历通用视频预训练、世界/动作条件中期训练、因果生成和蒸馏后训练；动作信号包括相机旋转与键盘控制，并依赖严格对齐的游戏操作数据、相机参数及合成场景。动作适配不是单次特征拼接，而是数据、目标与时间结构共同改变。</p>
+          <p><strong>实验证据：</strong>论文展示可控场景与动作响应，也在局限中承认“在杂乱桌面抓取特定杯子”这种对象级精准交互仍难。它支持学习动作条件视频，但未证明视频交互能力足以完成精密操作。</p>
+          <p><strong>对 WAM+3D：</strong>先整理逐候选独立重置、执行前动作与执行后物体运动严格对齐的数据；加入面向接触的训练监督与几何敏感干预。不要指望冻结 WAM 后只加一个小适配器，就自动学出动作—物体因果关系。</p>
+          <p><strong>不能照搬：</strong>其动作多是导航/游戏指令，机器人末端控制、夹爪开合和接触动力学不一样；大规模训练配方也超出当前 71 个调试分叉的覆盖范围。</p>
+          <a href="https://arxiv.org/html/2601.20540" target="_blank" rel="noopener noreferrer">论文原文与训练阶段 ↗</a></article>
+        <article class="paper-card"><div class="tag">06 · PointACT · 2026</div><h3>三维在动作局部交互中用，而不是末端拼接</h3>
+          <p><strong>实际机制：</strong>从深度得到点云，点编码器建立多尺度局部特征；动作 token 在多个点云局部窗口内反复与点特征交互，再预测动作。冻结的视觉语言模型补充语义。它是直接生成动作的 3D 策略，不是世界模型，也没有预测物体未来状态。</p>
+          <p><strong>实验证据：</strong>论文 RLBench-10Tasks 消融中，无点云的同类架构成功率 50.8%，加粗点特征 69.7%，简单多尺度拼接 65.2%/65.6%，其局部点—动作交互为 82.3%。这是作者任务和配置的结果，不能直接外推到我们的 DiT4DiT。简单拼接不保证更好，是与旧路线直接相关的警示。</p>
+          <p><strong>对 WAM+3D：</strong>把点云放进动作专家的交互层，建立一个真正强的“直接 3D 策略”对照；若它有效而新世界模型无效，问题可能在状态转移或决策桥梁，而非 3D 本身。可借鉴局部接触邻域与多尺度，但要与 RGB 语义结合。</p>
+          <p><strong>不能照搬：</strong>只复现 PointACT 不构成 WAM+3D 的贡献；它没有状态更新、反事实后果预测和视频一致性。其 3D 输入还依赖深度/标定，不能用仿真真值直接代替部署输入。</p>
+          <a href="https://arxiv.org/html/2605.21414" target="_blank" rel="noopener noreferrer">论文原文与消融表 ↗</a></article>
+      </div>
+      <div class="plain-flow"><strong>六项工作合起来，给我们的不是一个现成模型</strong><p>显式状态和逐帧投影主要来自 State World Models、Code World Model；局部点—动作交互来自 PointACT；动作条件训练与时间对齐来自 LingBot-World；长时身份/碰撞缺口由 Infinite Worlds 自己指出；实时约束由 SolarWM 给出工程参照。把它们用于机器人接触预测与决策仍需我们提出接口、训练目标和对照实验。</p></div>
+    </section>
+
+    <section class="shell" id="concept-architecture">
+      <div class="section-head"><div class="section-no">03 · 新架构</div><div><h2 class="section-title">如何真正“用好 3D”做 WAM＋3D</h2><p class="section-copy">这里的 WAM 不再只指“视频隐藏层被加了三维特征”。研究对象是共享三维状态、动作条件转移、动作决策与状态约束视频组成的闭环；以下模块均是拟实现方案，尚无新结果。</p></div></div>
+      <div class="architecture" aria-label="新 WAM+3D 假设架构">
+        <article class="arch-node focus"><b>01 · 可部署输入</b><strong>当前 RGB-D、机器人状态、语言</strong><span>深度/标定得到点云；仿真真值只作教师和上限实验。</span></article>
+        <article class="arch-node focus"><b>02 · 对象状态</b><strong>三维物体与夹爪关系</strong><span>形状、位姿、可见性、近接触区域和不确定性；更新物体身份。</span></article>
+        <article class="arch-node focus"><b>03 · 动作条件转移</b><strong>预测短时三维后果</strong><span>给定候选动作，预测物体/夹爪位移、接触、目标进度及不确定性。</span></article>
+        <article class="arch-node focus"><b>04 · 决策接口</b><strong>候选重排或动作修正</strong><span>只对可执行且预计有益的动作加分；执行几步即重新观察规划。</span></article>
+        <article class="arch-node"><b>05 · 视频分支</b><strong>投影几何代理给 WAM</strong><span>由预测状态逐帧生成深度、对象区域和点运动，约束未来视频。</span></article>
+        <article class="arch-node"><b>06 · 闭环反馈</b><strong>观察真实后果并更新</strong><span>比较预测与执行，修正状态；用真实任务成功率检验整条链。</span></article>
+      </div>
+      <div class="formula-grid" style="margin-top:18px">
+        <article class="formula-card"><h3>为什么这是 3D，而非“多一个输入”</h3><p>模型要在同一米制坐标中表示物体和夹爪，显式计算相对位置、可见性及近接触区域；动作改变末端轨迹后，预测哪个表面先接近、何时接触、物体向何处移动。三维信号必须对后果和动作排序产生可测影响。</p></article>
+        <article class="formula-card"><h3>为什么仍叫 WAM＋3D</h3><p>WAM 视频先验仍负责外观与时间连续性，但接受来自预测三维状态的逐帧空间条件；动作决策使用同一状态与转移，不必绕行视频隐藏层。这样能检验“预测的世界”和“做出的动作”是否一致，而非仅证明视频特征变化。</p></article>
+      </div>
+      <div class="boundary"><strong>明确防止未来泄漏：</strong>执行后的真实物体位姿、真实接触点和真实夹爪轨迹只能作训练标签/评估，不能当测试时输入。部署时仅使用当前观测、机器人状态、拟执行动作，以及从它们预测出来的未来状态。</div>
+    </section>
+
+    <section class="shell" id="concept-gates">
+      <div class="section-head"><div class="section-no">04 · 实施与判定</div><div><h2 class="section-title">先做最小可证伪实验，再扩大模型</h2><p class="section-copy">71 个重导分叉是调试数据，不足以证明新方法；新路线需重新设计训练/测试轨迹划分、几何干预和闭环验证。</p></div></div>
+      <div class="gate-ladder">
+        <article class="gate-step"><div class="gate-id">准备</div><div><h3>验收数据与确定基线</h3><p>复核 71/71 重导文件的独立重放、旋转、夹爪及接触标签；记录失败样本。先用仿真真值三维状态试方法上限，再换为 RGB-D 估计状态，区分动力学问题与感知问题。建立 RGB+动作、旧静态注入、直接 3D 动作策略三个对照，并固定未见过的轨迹/物体配置作最终测试。</p></div><span class="gate-state">未完成</span></article>
+        <article class="gate-step"><div class="gate-id">验证 1</div><div><h3>3D 状态是否真的可辨、可预测</h3><p>构造两类配对：同状态换动作、同动作改变物体位置/朝向；与零动作及重复重放噪声比较。衡量物体位移方向/幅度、接触时刻/区域、遮挡和不确定性；不同几何的影响须超过噪声。</p></div><span class="gate-state">待实验</span></article>
+        <article class="gate-step"><div class="gate-id">验证 2</div><div><h3>预测后果是否改善选动作</h3><p>用相同候选和计算预算比较随机/原策略、RGB 后果模型、正确 3D、错配 3D、直接 3D 策略；看候选排序、无效接触率和闭环任务成功率。正确 3D 只改善离线轨迹误差，不算通过。</p></div><span class="gate-state">待实验</span></article>
+        <article class="gate-step"><div class="gate-id">验证 3</div><div><h3>WAM 视频是否提供额外、可信的价值</h3><p>在相同状态转移上，对照无视频、静态 token 视频、逐帧 3D 空间代理视频；检查物体身份、几何/接触一致性、完整 rollout 的加 3D 前后视频及闭环收益。若视频不增益，保留 3D 决策结果，不把渲染包装成行动贡献。</p></div><span class="gate-state">待实验</span></article>
+      </div>
+      <div class="plain-flow"><strong>可能的研究贡献，需由实验决定</strong><p>目标不是复现 PointACT，也不是复制游戏规则系统，而是在机器人操作中验证：可由当前传感器得到的对象级 3D 状态，能否让动作条件世界模型更准确地预测接触后果，并通过可解释的候选重排提高闭环成功率；同一状态转移还能否约束 WAM 视频。如果直接 3D 策略已达同等效果，必须诚实承认世界模型没有提供额外决策价值。</p></div>
+    </section>
+
+    <details class="legacy-plan shell"><summary>展开 2026-10-28 上一版方案与既有机器人相关工作（历史归档，非当前执行计划）</summary>
+      <div class="boundary">以下内容是当时的数据修复与“3D → 视频隐藏层 → 动作”计划，原样保留以便追溯。其“待重导 71 分叉”等状态已过时；现在应以本页上方的新路线与当前数据状态为准。</div>
+    <section class="shell" id="legacy-comparison">
       <div class="section-head">
         <div class="section-no">C1 · 路线关系</div>
         <div><h2 class="section-title">保留最终目标，先修正验证顺序</h2><p class="section-copy">“三维先验”就是物体的形状、三维位置、朝向，以及它与夹爪的相对关系。最终要证明这些信息能改善动作，而不只是让模型内部特征发生变化。</p></div>
@@ -846,7 +942,7 @@
       <div class="boundary"><strong>研究边界：</strong>当前的候选动作与物体后果分析是诊断工具，不是已经完成的动作选择系统。当前三维真值主要来自仿真器；真实部署还需解决从传感器获得可靠初始三维信息。只预测物体轨迹更准确，也不能直接宣称机器人任务成功率提高。</div>
     </section>
 
-    <section class="shell" id="concept-architecture">
+    <section class="shell" id="legacy-architecture">
       <div class="section-head">
         <div class="section-no">C2 · 总体架构</div>
         <div><h2 class="section-title">从可靠数据到动作验证的完整顺序</h2><p class="section-copy">每一步回答一个不同问题；前一步不可靠，就不能把后一步的负结果归咎于三维方法。</p></div>
@@ -884,7 +980,7 @@
       <div class="boundary"><strong>数据版本说明：</strong>旧候选轨迹暂保留用于对照，但不直接作为新模型结论的可信依据。新导出文件会记录“每个候选是否独立重置”；接触标签必须按同样方式重放。当前候选多为人为扰动，最终还需检查模型实际生成的动作。</div>
     </section>
 
-    <section class="shell" id="concept-training">
+    <section class="shell" id="legacy-training">
       <div class="section-head">
         <div class="section-no">C4 · 验证问题</div>
         <div><h2 class="section-title">下一轮实验分别要回答四个问题</h2><p class="section-copy">先确保答案本身可信，再比较模型；不因为一个误差数字变小，就直接说机器人会做得更好。</p></div>
@@ -901,7 +997,7 @@
       </div>
     </section>
 
-    <section class="shell" id="concept-gates">
+    <section class="shell" id="legacy-gates">
       <div class="section-head">
         <div class="section-no">C5 · 验收顺序</div>
         <div><h2 class="section-title">四道门槛，逐级确认</h2><p class="section-copy">旧的三轮保留测试已用于模型选择，不能针对结果反复调参后再宣称“通过”。修正方法需要新的、按轨迹划分的独立测试。</p></div>
@@ -985,10 +1081,11 @@
         <code>docs/wam3d_progress.md</code>
       </div>
     </section>
+    </details>
   </main>
 
   <footer class="page-footer">
-    <div class="shell">WAM+3D · 研究进展与当前技术路线 · 更新于 2026-10-28 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">参考技术构思</a></div>
+    <div class="shell">WAM+3D · 文献研读与新技术路线 · 更新于 2026-10-30 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">最初参考构思</a></div>
   </footer>
   <script>
     (() => {
@@ -1006,8 +1103,8 @@
           button.setAttribute('aria-selected', String(selected));
         });
         document.title = next === 'concept'
-          ? 'WAM+3D · 当前技术构想'
-          : 'WAM+3D · 阶段性研究进展';
+          ? 'WAM+3D · 新路线与文献研读'
+          : 'WAM+3D · 历史实验记录';
         if (updateHash) history.replaceState(null, '', next === 'concept' ? '#concept' : '#progress');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -1020,7 +1117,7 @@
         if (target?.closest('[data-view="concept"]')) setView('concept', false);
         if (target?.closest('[data-view="progress"]')) setView('progress', false);
       });
-      setView(location.hash.startsWith('#concept') ? 'concept' : 'progress', false);
+      setView(location.hash.startsWith('#progress') ? 'progress' : 'concept', false);
     })();
   </script>
 </body>
