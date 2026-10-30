@@ -385,8 +385,8 @@
         <a href="#experiments">实验</a><a href="#issues">问题</a><a href="#next">下一步</a>
       </nav>
       <nav aria-label="当前路线导航" data-nav="concept">
-        <a href="#concept-overview">判断</a><a href="#concept-comparison">路线变化</a><a href="#concept-papers">逐篇研读</a>
-        <a href="#concept-architecture">3D架构</a><a href="#concept-gates">实验验证</a>
+        <a href="#concept-overview">研究问题</a><a href="#concept-gap">文献边界</a><a href="#concept-system">模型构想</a>
+        <a href="#concept-validation">验证顺序</a><a href="#concept-archive">历史构想</a>
       </nav>
       <div class="top-actions">
         <div class="view-switch" role="tablist" aria-label="页面视图">
@@ -787,35 +787,78 @@
 
   <main id="concept-view" class="view-panel" data-view="concept">
     <section class="concept-hero shell" id="concept-overview">
-      <div class="eyebrow">六项工作复核后的研究问题 · 2026-10-30</div>
-      <h1>3D 不能只是一个输入。<br><em>它要决定动作、状态与画面如何相互约束。</em></h1>
-      <p class="hero-lead">上一版写成“预测后果＋重排动作”仍然太浅：那只是一个可做的基线，既没有实现论文中的局部几何交互，也没有建立状态到视频的可检查接口。这里重新逐篇说明学到了什么、不能照搬什么，并把真正的新研究问题与尚未确定的结构分开。</p>
+      <div class="eyebrow">新立题草案 · 2026-10-31 · 尚未开始训练</div>
+      <h1>不再给 WAM“加一点 3D”。<br><em>先让可执行动作产生可信的三维后果。</em></h1>
+      <p class="hero-lead">拟研究一个更具体、仍需核实新颖性的问题：从当前观测和机器人实际可执行的控制指令出发，联合预测夹爪实际运动、接触与物体三维变化；让同一次预测同时约束未来视频和动作选择。旧静态特征注入不再是新方案的前提，旧实验结果也不作为新方法有效性的证据。</p>
       <div class="hero-meta">
-        <span class="pill live">核心问题：WAM 能否比直接 3D 策略多提供价值</span>
-        <span class="pill">局部点—动作交互</span>
-        <span class="pill">显式状态与逐帧空间条件</span>
-        <span class="pill">结构仍待消融决定，非已证实贡献</span>
+        <span class="pill live">输入：当前状态＋原始控制指令</span>
+        <span class="pill">核心：机器人—接触—物体耦合转移</span>
+        <span class="pill">输出：共享的未来 3D 状态</span>
+        <span class="pill">新颖性与效果均待验证</span>
       </div>
 
       <div class="headline-grid">
         <article class="verdict concept-verdict">
           <div class="eyebrow">路线判断</div>
-          <h2>停止“静态注入＝用了 3D”的思路；新结构尚未定案。</h2>
-          <p>旧方案使部分未来位置预测变好，却没证明动作收益；更直接的动作/接触探针也未过严格对照。文献提示三条不同机制：点云应在动作解码中局部交互；状态应独立维护并约束结果；视频应接受逐帧空间条件。如何在机器人操作中连接它们、连接后是否胜过直接 3D 策略，尚无答案。</p>
+          <h2>核心不是信息注入位置，而是谁负责决定动作后果。</h2>
+          <p>直接把当前几何编码进视频或动作层，不能使模型学会“指令是否真的让夹爪碰到物体”。候选新方案让三维状态逐步演化：先计算控制器在无接触时能做什么，再联合预测实际夹爪运动、接触和物体响应；视频呈现这一预测，动作模块利用它比较候选指令。是否比已有世界模型更好，还必须实测。</p>
         </article>
         <div class="status-stack">
-          <div class="status-card good"><small>数据处理</small><strong>71 / 71 分叉已重导，导出无报错</strong></div>
-          <div class="status-card warn"><small>未完成</small><strong>全量独立重放、接触标签复核</strong></div>
-          <div class="status-card"><small>科学结论</small><strong>新路线的动作与闭环收益尚未证明</strong></div>
+          <div class="status-card good"><small>已完成</small><strong>最接近工作的第一轮机制排重</strong></div>
+          <div class="status-card warn"><small>待核实</small><strong>完整新颖性、数据可行性与训练成本</strong></div>
+          <div class="status-card"><small>科学结论</small><strong>新架构还没有实验效果或闭环收益</strong></div>
         </div>
       </div>
 
       <div class="evidence-strip">
-        <div class="evidence"><b>6 项</b><span>逐篇核对方法、证据、局限；其中 SolarWM 是技术文章，不是论文</span></div>
-        <div class="evidence"><b>71 / 71</b><span>旧训练/开发候选分叉独立重置流程导出完成；不等于标签已全部验收</span></div>
-        <div class="evidence"><b>0</b><span>截至当前，新路线尚无闭环成功率提升证据，也没有可信的加 3D 前后对照视频</span></div>
+        <div class="evidence"><b>已覆盖</b><span>原生 3D 世界—动作模型、视频评分、状态到画面接口，不能再作为宽泛创新主张</span></div>
+        <div class="evidence"><b>待解决</b><span>原始指令到实际夹爪、接触及物体变化的联合推演</span></div>
+        <div class="evidence"><b>0</b><span>新路线目前没有训练、视频对照或闭环成功率证据</span></div>
       </div>
     </section>
+
+    <section class="shell" id="concept-gap">
+      <div class="section-head"><div class="section-no">01 · 文献边界</div><div><h2 class="section-title">哪些已经有人做，缺口究竟在哪里</h2><p class="section-copy">以下区分论文已证实的能力与我们据此提出的研究推断。将几篇已有架构拼在一起，本身不是创新。</p></div></div>
+      <div class="route-table-wrap"><table class="route-table" aria-label="最接近工作与候选研究缺口"><thead><tr><th>已有工作</th><th>实际解决了什么</th><th>对本问题留下的边界</th></tr></thead><tbody>
+        <tr><td><a href="https://arxiv.org/html/2610.02840" target="_blank" rel="noopener noreferrer">PointWAM</a>、<a href="https://arxiv.org/html/2610.12099" target="_blank" rel="noopener noreferrer">UNITAS</a>、<a href="https://arxiv.org/html/2610.36011" target="_blank" rel="noopener noreferrer">E0.5</a></td><td>已经将未来 3D 场景变化与动作学习联系起来；“原生 3D 世界—动作模型”不是我们的新颖性。UNITAS 的场景预测实验以夹爪轨迹为条件，动作命令与场景预测的关系另作一致性评估。</td><td>需检验从<strong>可执行控制指令</strong>到实际机器人和物体联合运动的闭环推演，不能把给定夹爪轨迹的结果直接当作这一问题已解决。</td></tr>
+        <tr><td><a href="https://arxiv.org/html/2601.03782" target="_blank" rel="noopener noreferrer">PointWorld</a>、<a href="https://arxiv.org/html/2607.22535" target="_blank" rel="noopener noreferrer">Robot-Factored WM</a></td><td>前者用已完整实现的机器人轨迹预测场景点流，并明确指出未回答机器人是否能实现该轨迹；后者由原始指令计算部署可用的名义机器人轨迹，再渲染到视频条件中。</td><td>名义运动与接触后的实际运动不同。候选机制必须允许接触反过来改变夹爪运动，而不只沿预定路径预测物体。</td></tr>
+        <tr><td><a href="https://arxiv.org/html/2608.25927" target="_blank" rel="noopener noreferrer">Code World Model</a>、<a href="https://arxiv.org/html/2610.26811" target="_blank" rel="noopener noreferrer">State World Models</a></td><td>把状态演化与视频呈现分开，用可执行代码或规则产生状态，再用逐帧空间条件或场景约束画面。</td><td>机器人接触的未来状态不能在测试时从游戏代码或规则直接读取；需先由当前观测和动作预测，再交给视频。</td></tr>
+        <tr><td><a href="https://arxiv.org/html/2607.26579" target="_blank" rel="noopener noreferrer">ContactFlow</a>、<a href="https://arxiv.org/html/2610.12468" target="_blank" rel="noopener noreferrer">DreamTrue</a>、<a href="https://arxiv.org/html/2606.01027" target="_blank" rel="noopener noreferrer">τ₀-WM</a></td><td>接触轨迹控制视频、同场景换动作的反事实视频训练、用预测未来评价并修正动作，都已有相近工作。</td><td>不能把“加接触轨迹”“做反事实视频”“候选重排”单独宣称贡献；需证明可执行指令驱动的三维接触状态给这些环节带来额外价值。</td></tr>
+      </tbody></table></div>
+      <div class="boundary"><strong>当前仅是候选缺口：</strong>已查到的这些工作没有让我们可以直接宣称首创。还需继续检索机器人动力学、接触世界模型和控制器误差建模文献；若已有完整同类方法，应继续收窄问题，而不是更换术语。</div>
+    </section>
+
+    <section class="shell" id="concept-system">
+      <div class="section-head"><div class="section-no">02 · 模型构想</div><div><h2 class="section-title">把“状态转移”变成主模型，而非附加编码器</h2><p class="section-copy">聚焦短时、接触丰富的刚体桌面操作；下列结构是研究假设，不是已实现系统。</p></div></div>
+      <div class="architecture" aria-label="从可执行指令到三维未来状态，再到视频和动作">
+        <article class="arch-node focus"><b>01 · 推理输入</b><strong>当前 RGB-D、机器人状态、原始指令</strong><span>物体几何和位姿从当前观测估计；不得读取未来真实轨迹。</span></article>
+        <article class="arch-node focus"><b>02 · 已知部分</b><strong>控制器与运动学</strong><span>计算无接触时的名义运动；只是参考，不假定一定实现。</span></article>
+        <article class="arch-node focus"><b>03 · 核心待学</b><strong>机器人 ↔ 接触 ↔ 物体</strong><span>逐步更新：实际运动影响接触，接触再影响机器人和物体；输出不确定性。</span></article>
+        <article class="arch-node focus"><b>04 · 共享状态</b><strong>未来 3D 位置、朝向、接触与置信度</strong><span>候选动作各自得到一条可检查、可比较的状态轨迹。</span></article>
+        <article class="arch-node"><b>05 · 视频</b><strong>预测状态 → 逐帧空间条件</strong><span>视频生成外观和细节，但应服从预测的位置、身份与遮挡。</span></article>
+        <article class="arch-node"><b>06 · 动作</b><strong>候选提出 → 后果评估 → 执行</strong><span>按任务目标与失败风险选择；执行后的新观测纠正状态。</span></article>
+      </div>
+      <div class="detail-grid">
+        <article class="detail-card"><h4>核心因果区别</h4><p>不是“给定未来夹爪路径，预测物体如何走”，而是“给定现在能下发的指令，联合预测夹爪最终能怎么走、何时接触、物体是否真的动”。失败抓取和接触受阻应是可预测的结果，而非视频生成的意外瑕疵。</p></article>
+        <article class="detail-card"><h4>3D 与视频的分工</h4><p>三维转移模型负责短时几何与交互后果；视频模型负责可见外观。空间代理只从模型预测状态编译，训练时使用真实状态制作的代理必须明确标为“条件遵循上限”，不能当部署结果。</p></article>
+        <article class="detail-card"><h4>为什么不沿旧代码接法</h4><p>旧式“当前物体 3D → token → 冻结视频隐藏层 → 动作”既没有强制预测实际接触后果，也不能保证视频、动作读同一份未来状态。新问题允许更换骨干和训练目标，不要求保留原注入位置。</p></article>
+        <article class="detail-card"><h4>贡献要靠什么站住</h4><p>只有联合推演比名义轨迹/已知路径模型更准确地识别接触与物体后果，且共享状态使视频更物理一致或使动作闭环更好，才可能形成贡献。若只改进画质，不声称动作收益。</p></article>
+      </div>
+    </section>
+
+    <section class="shell" id="concept-validation">
+      <div class="section-head"><div class="section-no">03 · 验证顺序</div><div><h2 class="section-title">先证明交互推演，再支付视频模型的成本</h2><p class="section-copy">每一关都设置能推翻假设的对照；这些是下一阶段工作安排，不是已经完成的结果。</p></div></div>
+      <div class="gate-ladder">
+        <article class="gate-step"><div class="gate-id">排重</div><div><h3>补全最接近工作的查重</h3><p>重点核对“原始控制指令 → 接触下实际机器人和物体联合运动 → 同一三维状态约束视频及动作”是否已有直接实现。若已覆盖，重新限定任务或机制，暂不宣称新颖性。</p></div><span class="gate-state">进行中</span></article>
+        <article class="gate-step"><div class="gate-id">数据</div><div><h3>重新设计数据，而非依赖旧分叉结论</h3><p>每个候选动作独立重置；采相同状态换非零指令、相同指令换初始几何，并覆盖接近、碰到、抓住、滑落及失败。记录当前观测、原始命令、名义/实际夹爪运动、接触与物体变化；后两类只作标签和评估。旧工具若复用须重新验收。</p></div><span class="gate-state">待设计</span></article>
+        <article class="gate-step"><div class="gate-id">3D</div><div><h3>单独验证可部署的三维转移</h3><p>同预算比较原始指令直接预测、名义轨迹加场景响应、忽略接触反馈的单向模型、机器人—接触—物体联合模型。报告夹爪实际运动、接触事件、物体位移/旋转、不同动作后果排序与不确定性校准；旧数据上的微小误差差异不作新路线成功证据。</p></div><span class="gate-state">待实验</span></article>
+        <article class="gate-step"><div class="gate-id">WAM</div><div><h3>验证共享状态是否改变视频和决策</h3><p>三维推演过关后，比较“仅 3D 决策”“仅视频想象”“预测 3D 状态约束视频＋动作”。分别报告视频的身份/遮挡/物体运动一致性、候选动作选择、闭环任务成功率和推理时延；若视频没有额外决策增益，就把它定位为呈现模块。</p></div><span class="gate-state">待实验</span></article>
+      </div>
+      <div class="plain-flow"><strong>判断标准</strong><p>这不是“找到一个比旧方案复杂的模型”就成功。数据首先要证明动作和几何干预产生可重复的物理差异；三维模型要在可部署输入下胜过强对照；最终 WAM 分支还需证明相对三维模型单独使用的增量。任何一步失败，都要缩题或改数据/机制，不靠增加一个 token 或损失绕过。</p></div>
+    </section>
+
+    <details class="legacy-plan shell" id="concept-archive"><summary>展开 2026-10-30 的两路径构想与逐篇研读（历史讨论，非当前执行计划）</summary>
+      <div class="boundary">以下保留此前文献阅读和讨论过程。其中“直接 3D 策略 A／状态视频 B”及旧静态注入、旧 71 条分叉的验证阶梯已被上方的新立题取代；相关内容不应再作为当前任务清单。</div>
 
     <section class="shell" id="concept-comparison">
       <div class="section-head"><div class="section-no">01 · 路线变化</div><div><h2 class="section-title">到底推倒了什么，保留了什么</h2><p class="section-copy">最初参考的 WAM-3D 构思给了项目起点，但“编码当前物体 3D → 注入 Cosmos 隐藏层 → Action DiT”未给出可靠动作增益。新路线改变的是三维发挥作用的位置与验证方式，不是换个名字继续加 token。</p></div></div>
@@ -926,6 +969,7 @@
       <div class="plain-flow"><strong>贡献判定，不先替实验写结论</strong><p>B1 若无效，确认旧“静态注入”问题；A 若有效，说明局部几何动作交互有价值，但那是 PointACT 类已有方向；B2 必须比 A 多改善接触后果与决策，才有状态转移贡献；B3 必须比 B2 多改善空间一致性，而且若声称 WAM 帮动作，还必须多改善闭环成功率。三项增益分别报告，不能把它们合成一个模糊的“3D 有用”。</p></div>
       <div class="boundary"><strong>尚未解决的现实约束：</strong>当前 71 个分叉不够训练上述系统；点云感知、对象跟踪、控制器命令与执行的一致性、视频推理时延都可能成为瓶颈。SolarWM 只给推理优化参考，不提供三维物理正确性。若 B3 算不及控制周期，就不能把视频假称为每步实时决策依据。</div>
     </section>
+    </details>
 
     <details class="legacy-plan shell"><summary>展开 2026-10-28 上一版方案与既有机器人相关工作（历史归档，非当前执行计划）</summary>
       <div class="boundary">以下内容是当时的数据修复与“3D → 视频隐藏层 → 动作”计划，原样保留以便追溯。其“待重导 71 分叉”等状态已过时；现在应以本页上方的新路线与当前数据状态为准。</div>
@@ -1112,7 +1156,7 @@
   </main>
 
   <footer class="page-footer">
-    <div class="shell">WAM+3D · 文献研读与新技术路线 · 更新于 2026-10-30 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">最初参考构思</a></div>
+    <div class="shell">WAM+3D · 文献研读与待验证的新立题 · 更新于 2026-10-31 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">最初参考构思</a></div>
   </footer>
   <script>
     (() => {
