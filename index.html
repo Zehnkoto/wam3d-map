@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>WAM+3D · 新路线与文献研读</title>
+  <title>WAM+3D · 物体形状先验研究路线</title>
   <style>
     :root {
       --bg: #07100f;
@@ -328,6 +328,10 @@
     .legacy-plan { margin: 40px auto 80px; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: rgba(255,255,255,.02); }
     .legacy-plan > summary { cursor: pointer; color: var(--amber); font-weight: 700; }
     .legacy-plan > .boundary { margin-bottom: 5px; }
+    .prior-hero .concept-verdict::after { content: "PRIOR"; font-size: 85px; }
+    .prior-view .route-table td:first-child { width: 16%; }
+    .prior-view .reference-card h3 { color: var(--mint); }
+    .prior-view .reference-card a { overflow-wrap: anywhere; }
 
     @media (max-width: 900px) {
       nav { display: none; }
@@ -384,14 +388,19 @@
         <a href="#overview">总览</a><a href="#current-check">最新进展</a><a href="#route">路线</a><a href="#work">工作量</a>
         <a href="#experiments">实验</a><a href="#issues">问题</a><a href="#next">下一步</a>
       </nav>
-      <nav aria-label="当前路线导航" data-nav="concept">
+      <nav aria-label="形状先验路线导航" data-nav="prior">
+        <a href="#prior-overview">判断</a><a href="#prior-origin">路线关系</a><a href="#prior-literature">论文依据</a>
+        <a href="#prior-system">方法</a><a href="#prior-tests">验证</a><a href="#prior-scope">贡献边界</a>
+      </nav>
+      <nav aria-label="动力学构想导航" data-nav="concept" hidden>
         <a href="#concept-overview">研究问题</a><a href="#concept-gap">文献边界</a><a href="#concept-system">模型构想</a>
         <a href="#concept-validation">验证顺序</a><a href="#concept-archive">历史构想</a>
       </nav>
       <div class="top-actions">
         <div class="view-switch" role="tablist" aria-label="页面视图">
           <button type="button" role="tab" aria-selected="false" data-view-target="progress">历史实验</button>
-          <button class="active" type="button" role="tab" aria-selected="true" data-view-target="concept">当前路线</button>
+          <button type="button" role="tab" aria-selected="false" data-view-target="concept">动力学备选</button>
+          <button class="active" type="button" role="tab" aria-selected="true" data-view-target="prior">形状先验新路线</button>
         </div>
         <button class="print-btn" onclick="window.print()">打印 / PDF</button>
       </div>
@@ -402,7 +411,7 @@
     <section class="hero shell" id="overview">
       <div class="eyebrow">历史实验快照 · 截至 2026-10-28</div>
       <h1>让对象级三维先验<br>真正进入 WAM 的行动链路</h1>
-      <p class="hero-lead">本页记录此前“静态 3D 特征注入视频隐藏层”的实现与失败诊断，不代表 2026-10-30 起的执行路线。请切换“当前路线”看文献驱动的新方案。</p>
+      <p class="hero-lead">本页记录此前“静态 3D 特征注入视频隐藏层”的实现与失败诊断。上方“动力学备选”保留后续构想；最新研究问题请切换“形状先验新路线”。</p>
       <div class="boundary"><strong>历史内容提示：</strong>下文“当前”“下一步”等表述均为 2026-10-28 当时的记录。71 个候选分叉已重新导出；全量独立复现和接触标签验收尚未完成。新的研究方向不再要求 3D 先通过视频隐藏层才进入动作。</div>
       <div class="hero-meta">
         <span class="pill live">当前阶段：反事实数据质量核查</span><span class="pill">主基座：DiT4DiT</span>
@@ -785,11 +794,101 @@
     </section>
   </main>
 
-  <main id="concept-view" class="view-panel" data-view="concept">
+  <main id="prior-view" class="view-panel prior-view" data-view="prior">
+    <section class="concept-hero prior-hero shell" id="prior-overview">
+      <div class="eyebrow">研究路线重构 · 2026-10-31 · 尚未验证的新假设</div>
+      <h1>回到“外部物体形状先验”。<br><em>检验它能否改变未来与行动。</em></h1>
+      <p class="hero-lead">最初的 WAM+3D 构想不是单次点云编码注入，而是让机器人从物体库找回当前看不全的完整形状，并在匹配、对齐和不确定性受控的条件下用于未来预测。近期工作提示：三维应成为可查询、可更新的对象状态，而非无约束的附加特征。但“检索 CAD”“补全点云”“3D 参与动作”都已有研究；下面只是一个需要实验与进一步排重的候选问题。</p>
+      <div class="hero-meta">
+        <span class="pill live">核心变量：当前不可见、但事先已知的形状</span>
+        <span class="pill">当前位姿是状态，不等于形状先验</span>
+        <span class="pill">P2 是早期上限测试，不是完整方法</span>
+        <span class="pill">尚无新路线训练或闭环结果</span>
+      </div>
+      <div class="headline-grid">
+        <article class="verdict concept-verdict">
+          <div class="eyebrow">一句话研究问题</div>
+          <h2>当当前视角缺少任务关键几何，已知物体的完整形状能否让 WAM 预测“不同动作会发生什么”，并选出更好的动作？</h2>
+          <p>前提是物体身份来自先前观察、合法标签或当前确有辨识力的线索；若当前画面和历史都无法区分两个物体，算法不可能凭空选中正确先验。还必须检验取错形状或位姿时能否降低信任、避免比不用先验更差。</p>
+        </article>
+        <div class="status-stack">
+          <div class="status-card good"><small>保留原意</small><strong>物体库、匹配对齐、未来预测、可靠退化</strong></div>
+          <div class="status-card warn"><small>放弃捷径</small><strong>仅把完整点云压成 token 注入视频</strong></div>
+          <div class="status-card"><small>开放问题</small><strong>WAM 是否比直接三维决策再多一层收益</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell" id="prior-origin">
+      <div class="section-head"><div class="section-no">01 · 回看原始规划</div><div><h2 class="section-title">不是“原来完全做错”，而是 P2 被当成了整条路线</h2><p class="section-copy">原文的研究目标、简化原型、后续方法必须分开；旧实验失败只约束做过的接口和任务。</p></div></div>
+      <div class="route-table-wrap"><table class="route-table" aria-label="原始规划、已有实验和新路线对照"><thead><tr><th>阶段</th><th>真正研究或实际完成的内容</th><th>现在的判断</th></tr></thead><tbody>
+        <tr><td><a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/#modules" target="_blank" rel="noopener noreferrer">原始构想</a></td><td>已知物体的静态形状库；观测中识别、匹配并估计 6D 位姿；按置信度让观测和未来预测读取几何；比较正确、错配、关闭先验以及闭环结果。</td><td>这是仍值得验证的问题框架。原文也建议先做已知正确物体的轻量视频侧实验，但将它标成早期关卡，而非最终贡献。</td></tr>
+        <tr><td><a href="#progress-view">实际 P1/P2</a></td><td>以仿真真值身份、点云和位姿为主，先把编码特征送到视频派生表征，后来又尝试按空间位置注入 Cosmos 内部。部分未来位姿探针有信号；正确形状相对随机/错误形状的优势及动作增益未稳定成立，闭环尚未验证。</td><td>说明这些原型没有证明“完整形状先验被有效利用”；也不能推出物体库、自动匹配和遮挡场景无意义。旧数据的反事实重放问题另须单独审计。</td></tr>
+        <tr><td><a href="#concept-view">动力学备选</a></td><td>把原始控制指令、接触下的机器人运动和物体状态转移作为主问题，研究可执行动作的真实后果。</td><td>接触转移可成为本路线的下游模型或强基线，但它不回答“额外的已知形状何时必要”；若单独做，应另立题，不能说是原计划 P3。</td></tr>
+        <tr><td>此次重构</td><td>先构造“当前看不全、历史可辨认、动作依赖隐藏几何”的任务，检验库中形状相对当前 RGB-D 的信息增量；过关后再做匹配、动态、视频和闭环。</td><td>不预设某个注入层，也不把多篇论文相加当创新。先证明问题存在且 WAM 有额外价值，再确定具体模型。</td></tr>
+      </tbody></table></div>
+      <div class="boundary"><strong>名词与范围边界：</strong>“3D prior”在这里特指执行前已可获得、当前视角未充分显示的物体形状知识（例如事先扫描或库中 CAD）。当前检测出的物体位置、朝向和可见点云是观测状态；未来真实物体轨迹、真实接触和执行后夹爪运动只能做标签，不能在推理时偷看。先前视角在本路线仅用于建立/保持物体身份，不把长期情景记忆作为新的研究目标。</div>
+    </section>
+
+    <section class="shell" id="prior-literature">
+      <div class="section-head"><div class="section-no">02 · 论文如何改变问题</div><div><h2 class="section-title">逐项借机制，同时承认已有工作的覆盖范围</h2><p class="section-copy">“可借鉴”是从论文方法推出的本项目假设；并不表示论文已经证明我们的 WAM+3D 方法有效。</p></div></div>
+      <div class="reference-grid">
+        <article class="reference-card"><h3>RAG-6DPose · 先找、再对齐</h3><p><strong>已做：</strong>把多视角 CAD 的视觉与三维特征存进知识库，从图像检索相关几何并改进 6D 位姿估计，特别讨论遮挡。</p><p><strong>用于这里：</strong>检索不能直接替换成仿真真值 ID；需要可见表面与库中候选的一致性及位姿置信度。<strong>未做：</strong>它不证明检索后的形状改善 WAM 未来与动作。</p><a href="https://arxiv.org/html/2506.18856" target="_blank" rel="noopener noreferrer">论文原文 ↗</a></article>
+        <article class="reference-card"><h3>3dPwm · 完整几何进入动力学</h3><p><strong>已做：</strong>先将单视角点云补全，再以完整场景点云学习动作条件的三维动力学，比较部分/完整点云的预测与规划。</p><p><strong>用于这里：</strong>“补全后做后果预测”已不是创新；它是必须比较的强基线。我们拟问的是<strong>实例库中可核验的已知形状</strong>相对学习式补全、以及传入视频 WAM 后的额外价值。</p><a href="https://arxiv.org/html/2607.00148" target="_blank" rel="noopener noreferrer">论文原文 ↗</a></article>
+        <article class="reference-card"><h3>TARGO-Net · 遮挡抓取已有人做</h3><p><strong>已做：</strong>在目标物体被遮挡时补全形状，再结合场景预测抓取；它说明“隐藏几何有助于抓取”不是新命题。</p><p><strong>用于这里：</strong>不能只以单步抓取成功率为贡献；要检验物体先验对<strong>动作条件未来状态</strong>以及多步闭环行动的作用。</p><a href="https://arxiv.org/abs/2407.06168" target="_blank" rel="noopener noreferrer">论文原文 ↗</a></article>
+        <article class="reference-card"><h3>PointACT / GAM · 直接 3D 动作是强基线</h3><p><strong>已做：</strong>PointACT 让动作 token 与多尺度局部点云交互；GAM 把目标物体的视觉特征和米制几何一起交给动作模型。</p><p><strong>用于这里：</strong>若同样的形状信息直接给动作头已足够，视频世界模型不能被默认宣称必要；须比较直接决策与“形状→未来预测→动作”。</p><a href="https://arxiv.org/html/2605.21414" target="_blank" rel="noopener noreferrer">PointACT ↗</a> · <a href="https://arxiv.org/html/2609.23863" target="_blank" rel="noopener noreferrer">GAM ↗</a></article>
+        <article class="reference-card"><h3>State World Models · 隐藏状态成对验证</h3><p><strong>已做：</strong>用相同初始画面和动作、不同隐藏状态且要求不同结局的反事实双例，检验视频模型能否遵守不可见状态。</p><p><strong>用于这里：</strong>设计“当前视角相似、隐藏接触几何不同”的成对任务；区别在于本项目的隐藏状态来自事先可取得的物体形状，并要落到机器人动作。</p><a href="https://arxiv.org/html/2610.26811" target="_blank" rel="noopener noreferrer">论文原文 ↗</a></article>
+        <article class="reference-card"><h3>Code World Model · 状态到画面的接口</h3><p><strong>已做：</strong>先维护可执行世界状态，再编译低带宽、逐帧对齐的空间代理条件，视频模型按条件渲染；主要在游戏数据验证。</p><p><strong>用于这里：</strong>若已预测未来物体位置/遮挡，可把它变成深度与实例遮罩等空间条件，而非只丢一个形状 token。机器人未来状态须由模型预测，不能拿仿真器真值代替。</p><a href="https://arxiv.org/html/2608.25927" target="_blank" rel="noopener noreferrer">论文原文 ↗</a></article>
+        <article class="reference-card"><h3>PointWAM · 三维未来与动作已连接</h3><p><strong>已做：</strong>在同一坐标系共同预测手与场景点轨迹，并把手的未来运动转成动作。</p><p><strong>用于这里：</strong>未来几何必须与行动相关，而非孤立视频探针。但它主要从当前观察的点出发，不等同于检索并使用事先存储的完整物体实例形状。</p><a href="https://arxiv.org/html/2610.02840" target="_blank" rel="noopener noreferrer">论文原文 ↗</a></article>
+      </div>
+      <div class="plain-flow"><strong>为什么不是照搬近期大模型？</strong><p><a href="https://arxiv.org/abs/2607.07534" target="_blank" rel="noopener noreferrer">Infinite Worlds</a>、<a href="https://arxiv.org/abs/2601.20540" target="_blank" rel="noopener noreferrer">LingBot-World</a> 与 <a href="https://solarx-team.github.io/SolarWM-H3-Realtime/zh.html" target="_blank" rel="noopener noreferrer">SolarWM-H3 Realtime</a> 主要提供长时交互、视频生成或实时部署的经验；它们不直接解决“当前不可见的已知物体形状怎样影响机械操作”。先验证几何信息是否必要，再讨论速度和规模。</p></div>
+    </section>
+
+    <section class="shell" id="prior-system">
+      <div class="section-head"><div class="section-no">03 · 候选技术路线</div><div><h2 class="section-title">让完整形状成为可查的世界状态，而非一次性编码</h2><p class="section-copy">下述模块是可分拆的研究设计，不代表需要一次做完。外部形状只有在帮助预测动作后果时才算“用好 3D”。</p></div></div>
+      <div class="architecture" aria-label="物体形状先验到动作的候选信息链">
+        <article class="arch-node focus"><b>01 · 先验来源</b><strong>事先扫描 / CAD 物体库</strong><span>存实例级完整形状和可见特征；标明先验何时、如何被机器人取得。</span></article>
+        <article class="arch-node focus"><b>02 · 当前定位</b><strong>检索身份 + 对齐位姿</strong><span>用当前 RGB-D 与合法历史观察估计物体与位姿分布，输出可信度；未知物体可拒绝使用。</span></article>
+        <article class="arch-node focus"><b>03 · 动作查询</b><strong>查询动作扫过的局部几何</strong><span>候选指令和可执行的名义夹爪运动查询隐藏表面、间隙及潜在接触区；不读取真实未来运动。</span></article>
+        <article class="arch-node focus"><b>04 · 未来状态</b><strong>预测接触与物体运动</strong><span>对每个候选动作预测位置、朝向、接触与不确定性；完整形状只是几何条件，摩擦/质量仍需控制或建模。</span></article>
+        <article class="arch-node"><b>05 · WAM 接口</b><strong>状态 → 对齐的空间条件</strong><span>将预测状态编译为逐帧深度/实例/遮挡代理，检验视频是否服从几何约束。</span></article>
+        <article class="arch-node"><b>06 · 行动与纠错</b><strong>选动作 → 执行 → 新观测</strong><span>比较直接 3D 决策与 WAM 辅助决策；执行后重估位姿和可信度。</span></article>
+      </div>
+      <div class="formula-grid" style="margin-top:18px">
+        <article class="formula-card"><h3>任务必须让先验有信息量</h3><p>设计可控的物体对：当前视角与可见深度尽量相似，但背面把手、开口或卡槽等隐藏几何不同，导致同一候选动作的接触和成败不同。需要单独证明差异不是颜色、对象编号、初始位置或语言提示泄漏。</p></article>
+        <article class="formula-card"><h3>物体身份不能“靠神谕”</h3><p>第一阶段可用真值身份/位姿测信息上限，正式方法必须从预先观察、标识或可靠的当前可见线索找到形状。若只有当前一帧且两物体完全不可区分，就报告不确定性并退化，不能要求模型猜对。</p></article>
+        <article class="formula-card"><h3>动作相关读取，不是全形状平均</h3><p>比较“全局形状 token”“局部可见点”“检索完整形状”和“按候选动作查询接触区域”。若完整形状只在可能接触的隐藏区域有用，应能在这些区域而非所有像素上看到差异。</p></article>
+        <article class="formula-card"><h3>视频的价值要额外证明</h3><p>先用轻量三维后果模型和直接三维动作策略确认信息价值，再把预测状态送给 WAM。视频只有在改善行动、跨遮挡一致性或可验证的未来几何时才是方法组成；单有好看视频不足以宣称决策收益。</p></article>
+      </div>
+    </section>
+
+    <section class="shell" id="prior-tests">
+      <div class="section-head"><div class="section-no">04 · 实验门槛</div><div><h2 class="section-title">先证明“有必要”，再证明“能获取”，最后证明“WAM 有用”</h2><p class="section-copy">这不是重新跑旧 P2：数据首先要满足形状差异会改变动作后果，而且部署时确有取得正确先验的来源。</p></div></div>
+      <div class="gate-ladder">
+        <article class="gate-step"><div class="gate-id">G0</div><div><h3>先检查任务和近邻文献</h3><p>做至少一种形状敏感且当前可见信息不足的仿真物体对，固定相同机器人状态与动作，确认隐藏几何确实导致可重复的接触/结果差异；再查“实例形状记忆→动作条件未来→WAM”是否已有直接方法。若差异不存在或文献已完整覆盖，收窄/换题。</p></div><span class="gate-state">待做</span></article>
+        <article class="gate-step"><div class="gate-id">G1</div><div><h3>真值先验只测上限</h3><p>在按物体配置、轨迹与视角隔离的测试中，比较当前 RGB-D、可见点云、语义/身份标签、学习式形状补全、正确完整形状和同类错配形状。参数/训练预算相当，评价成对动作后果、接触位置与物体轨迹；正确形状必须带来稳定增量，否则不继续堆 WAM。</p></div><span class="gate-state">待做</span></article>
+        <article class="gate-step"><div class="gate-id">G2</div><div><h3>从上限走向可部署检索</h3><p>仅使用执行前允许的历史/当前观测建立身份与位姿，报告检索准确率、配准误差、置信度校准、未知物体拒绝和错配后的性能。比较真值先验与自动先验差距；若错配造成明显伤害，必须先解决可信退化。</p></div><span class="gate-state">待做</span></article>
+        <article class="gate-step"><div class="gate-id">G3</div><div><h3>状态—视频—动作逐级消融</h3><p>同预算比较形状直接选动作、形状驱动的三维未来、原版 DiT4DiT 视频—动作、预测三维状态约束的 WAM，以及错误先验/关闭先验。真值未来状态做视频条件只能是遵循能力上限；正式推理必须用模型预测。报告未来三维、视频几何一致性、候选排序、闭环成功率与时延。</p></div><span class="gate-state">待做</span></article>
+      </div>
+      <div class="plain-flow"><strong>数据与统计纪律</strong><p>每个候选动作独立重置并重放，先审计物理与控制器状态；如果复用旧反事实数据，不能沿用未经复核的接触标签。用独立物体配置和轨迹做最终测试，在 pilot 估计效应大小后预先固定样本量、主要指标和停止条件。不能在看过结果后不断换门槛。</p></div>
+    </section>
+
+    <section class="shell" id="prior-scope">
+      <div class="section-head"><div class="section-no">05 · 贡献与边界</div><div><h2 class="section-title">可以争取的贡献，不是现在已经得到的结论</h2></div></div>
+      <div class="reason-chain">
+        <article class="reason-card"><b>可研究的机制</b><p>实例级先验与当前观测的可信结合；由候选动作查询隐藏的接触关键形状；将预测的三维后果以时空对齐条件约束 WAM，并检验其是否影响动作。</p></article>
+        <article class="reason-card"><b>明确不能抢的贡献</b><p>CAD 检索、位姿估计、形状补全、局部点云动作、三维世界模型、状态转视频接口及遮挡抓取均有近邻工作。最终新颖性须继续逐项排重。</p></article>
+        <article class="reason-card"><b>阴性结果怎么处理</b><p>若正确形状不胜当前 RGB-D/补全，说明任务或信息源不合适；若直接 3D 策略已足够，不称 WAM 决策创新；若自动检索不可靠，则停在先验上限和失败机制分析。</p></article>
+      </div>
+      <div class="stop-box" style="margin-top:18px"><h3>下一步只做一件最关键的事</h3><p>先写出并实现一个“同当前可见信息、不同事先可知的隐藏形状、同动作会有不同后果”的最小仿真物体对；明确身份如何从执行前取得，并用正确/错配先验做信息价值上限实验。这个门槛不成立，就先不训练更大的 WAM，也不把“换一种注入”当成新路线。</p></div>
+    </section>
+  </main>
+
+  <main id="concept-view" class="view-panel" data-view="concept" hidden>
     <section class="concept-hero shell" id="concept-overview">
-      <div class="eyebrow">新立题草案 · 2026-10-31 · 尚未开始训练</div>
+      <div class="eyebrow">动力学备选构想 · 2026-10-31 · 非当前形状先验主线</div>
       <h1>不再给 WAM“加一点 3D”。<br><em>先让可执行动作产生可信的三维后果。</em></h1>
-      <p class="hero-lead">拟研究一个更具体、仍需核实新颖性的问题：从当前观测和机器人实际可执行的控制指令出发，联合预测夹爪实际运动、接触与物体三维变化；让同一次预测同时约束未来视频和动作选择。旧静态特征注入不再是新方案的前提，旧实验结果也不作为新方法有效性的证据。</p>
+      <p class="hero-lead">本页保留此前拟议的独立动力学问题：从当前观测和机器人实际可执行的控制指令出发，联合预测夹爪实际运动、接触与物体三维变化。它可为形状先验路线提供下游模型或强基线，但本身没有回答“外部完整形状是否带来增量”；最新主线请切换“形状先验新路线”。旧实验结果也不作为新方法有效性的证据。</p>
       <div class="hero-meta">
         <span class="pill live">输入：当前状态＋原始控制指令</span>
         <span class="pill">核心：机器人—接触—物体耦合转移</span>
@@ -1156,7 +1255,7 @@
   </main>
 
   <footer class="page-footer">
-    <div class="shell">WAM+3D · 文献研读与待验证的新立题 · 更新于 2026-10-31 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">最初参考构思</a></div>
+    <div class="shell">WAM+3D · 形状先验研究路线（待验证）· 更新于 2026-10-31 · <a href="https://xy144001.github.io/embodied-ai-map/model-architecture/wam-3d/">最初参考构思</a></div>
   </footer>
   <script>
     (() => {
@@ -1164,8 +1263,8 @@
       const panels = [...document.querySelectorAll('[data-view]')];
       const navs = [...document.querySelectorAll('[data-nav]')];
 
-      function setView(view, updateHash = true) {
-        const next = view === 'concept' ? 'concept' : 'progress';
+      function setView(view, updateHash = true, scrollTop = updateHash) {
+        const next = ['prior', 'concept', 'progress'].includes(view) ? view : 'prior';
         panels.forEach(panel => { panel.hidden = panel.dataset.view !== next; });
         navs.forEach(nav => { nav.hidden = nav.dataset.nav !== next; });
         buttons.forEach(button => {
@@ -1173,11 +1272,11 @@
           button.classList.toggle('active', selected);
           button.setAttribute('aria-selected', String(selected));
         });
-        document.title = next === 'concept'
-          ? 'WAM+3D · 新路线与文献研读'
-          : 'WAM+3D · 历史实验记录';
-        if (updateHash) history.replaceState(null, '', next === 'concept' ? '#concept' : '#progress');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.title = next === 'prior'
+          ? 'WAM+3D · 物体形状先验研究路线'
+          : next === 'concept' ? 'WAM+3D · 动力学备选构想' : 'WAM+3D · 历史实验记录';
+        if (updateHash) history.replaceState(null, '', `#${next}`);
+        if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       buttons.forEach(button => button.addEventListener('click', () => setView(button.dataset.viewTarget)));
@@ -1185,10 +1284,16 @@
         const link = event.target.closest('a[href^="#"]');
         if (!link) return;
         const target = document.querySelector(link.getAttribute('href'));
-        if (target?.closest('[data-view="concept"]')) setView('concept', false);
-        if (target?.closest('[data-view="progress"]')) setView('progress', false);
+        const targetView = target?.closest('[data-view]')?.dataset.view;
+        if (targetView) setView(targetView, false);
       });
-      setView(location.hash.startsWith('#progress') ? 'progress' : 'concept', false);
+      const requested = document.getElementById(location.hash.slice(1) || 'prior-view');
+      setView(['progress', 'concept', 'prior'].includes(location.hash.slice(1))
+        ? location.hash.slice(1)
+        : requested?.closest('[data-view]')?.dataset.view || 'prior', false);
+      if (requested?.closest('[data-view]') && !['progress', 'concept', 'prior'].includes(location.hash.slice(1))) {
+        requestAnimationFrame(() => requested.scrollIntoView());
+      }
     })();
   </script>
 </body>
